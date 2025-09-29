@@ -176,7 +176,7 @@ elif st.session_state["page"] == "EDA_Summary":
                         text-align: center;
                         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                     ">
-                        <h3 style="margin: 0; color: #333;">{col_name}</h3>
+                        <h4 style="margin: 0; color: #333;">{col_name}</h4>
                         <p style="margin: 5px 0;"><strong>Missing:</strong> {col_data.isna().sum():.2f}</p>
                         <p style="margin: 5px 0;"><strong>Mean:</strong> {col_data.mean() }</p>
                         <p style="margin: 5px 0;"><strong>Median:</strong> {col_data.median() }</p>
@@ -270,4 +270,5 @@ elif st.session_state["page"] == "pkl":
     if col1.button("⬅️ Back"):
         next_page("training")
         st.rerun()
+
 
