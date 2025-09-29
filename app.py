@@ -176,7 +176,7 @@ elif st.session_state["page"] == "EDA_Summary":
                         text-align: center;
                         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                     ">
-                        <h3 style="margin: 0; color: #333;">{col_name}</h3>
+                        <h4 style="margin: 0; color: #333;">{col_name}</h4>
                         <p style="margin: 5px 0;"><strong>Missing:</strong> {col_data.isna().sum():.2f}</p>
                         <p style="margin: 5px 0;"><strong>Mean:</strong> {col_data.mean() }</p>
                         <p style="margin: 5px 0;"><strong>Median:</strong> {col_data.median() }</p>
@@ -194,30 +194,66 @@ elif st.session_state["page"] == "EDA_Summary":
 
 elif st.session_state["page"] == "visualizations":
     st.write("### All Column Visualizations")
+    
     data = st.session_state["data"].copy()
     categorical = data.select_dtypes(include='object').columns.tolist()
-    numerical = data.select_dtypes(include=['int64','float64']).columns.tolist()
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("## Categorical Features")
-        for col in categorical:
-            st.write(f"#### {col}")
-            st.pyplot(st.session_state["plots"][col])
-    with col2:
-        st.write("## Numerical Features")
-        for col in numerical:
-            st.write(f"#### {col}")
-            st.pyplot(st.session_state["plots"][col])
-
+    numerical = data.select_dtypes(include=['int64', 'float64']).columns.tolist()  
+    st.write("## Categorical Features")
+    cards = 2
+    for i in range(0, len(categorical), cards):
+        row_cols = st.columns(cards)
+        for j, col_name in enumerate(categorical[i:i + cards]):
+            with row_cols[j]:
+                
+                    st.markdown(
+                        f"""
+                        <div style="
+                            border: 2px solid #ddd;
+                            border-radius: 8px;
+                            padding: 15px;
+                            margin-bottom: 15px;
+                            background-color: #f9f9f9;
+                            text-align: center;
+                            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                        ">
+                            <h4 style="margin: 0; color: #333;">{col_name}</h4>
+                        </div>
+                        """,
+                        unsafe_allow_html=True)
+                    st.pyplot(st.session_state["plots"][col_name]) 
+    st.write("## Numerical Features")
+    cards = 2
+    for i in range(0, len(numerical), cards):
+        row_cols = st.columns(cards)
+        for j, col_name in enumerate(numerical[i:i + cards]):
+            with row_cols[j]:
+                st.markdown(
+                    f"""
+                    <div style="
+                        border: 2px solid #ddd;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        background-color: #f9f9f9;
+                        text-align: center;
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    ">
+                        <h4 style="margin: 0; color: #333;">{col_name}</h4>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+                st.pyplot(st.session_state["plots"][col_name])
     st.write("### Correlation Heatmap")
     st.pyplot(st.session_state["plots"]["__heatmap__"])
-    col1,col2 = st.columns(2)
+    col1, col2 = st.columns(2)
     if col1.button("⬅️ Back"):
         next_page("EDA_Summary")
         st.rerun()
     if col2.button("➡️ Next"):
         next_page("training")
         st.rerun()
+
 
 elif st.session_state["page"] == "training":
     data = st.session_state["data"].copy()
