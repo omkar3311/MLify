@@ -106,12 +106,23 @@ elif st.session_state["page"] == "EDA_Summary":
 
 elif st.session_state["page"] == "visualizations":
     st.write("### All Column Visualizations")
-    for col, fig in st.session_state["plots"].items():
-        if col == "__heatmap__":
-            st.write("### Correlation Heatmap")
-        else:
+    data = st.session_state["data"].copy()
+    categorical = data.select_dtypes(include='object').columns.tolist()
+    numerical = data.select_dtypes(include=['int64','float64']).columns.tolist()
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write("## Categorical Features")
+        for col in categorical:
             st.write(f"#### {col}")
-        st.pyplot(fig)
+            st.pyplot(st.session_state["plots"][col])
+    with col2:
+        st.write("## Numerical Features")
+        for col in numerical:
+            st.write(f"#### {col}")
+            st.pyplot(st.session_state["plots"][col])
+
+    st.write("### Correlation Heatmap")
+    st.pyplot(st.session_state["plots"]["__heatmap__"])
     col1,col2 = st.columns(2)
     if col1.button("⬅️ Back"):
         next_page("EDA_Summary")
