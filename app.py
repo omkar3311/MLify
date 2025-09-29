@@ -11,7 +11,6 @@ import io
 from sklearn.metrics import accuracy_score, mean_squared_error, r2_score
 import numpy as np
 
-st.title("MLify")
 st.set_page_config(page_title="MLify",page_icon="🤖",layout="wide")
 
 if "page" not in st.session_state:
@@ -64,6 +63,16 @@ def model_training(model, x, y, task="classification"):
     return score
 
 if st.session_state["page"] == "upload":
+    st.markdown(
+        """
+        <div style='display: flex; flex-direction: column; justify-content: center; align-items: center; height: 40vh;'>
+            <h1 style='font-size: 80px; font-weight: bold; margin: 0;'>MLify</h1>
+            <p style='font-size: 24px; color: gray; margin-top: 0px;'>
+                Your Gateway to Smarter Data Insights
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True )
     file = st.file_uploader("Upload Your CSV File", type=["csv"])
     if file is not None and "data" not in st.session_state:
         with st.spinner("**Processing data...**"):
@@ -90,12 +99,91 @@ elif st.session_state["page"] == "EDA_Summary":
     data = st.session_state["data"]
     col1,col2 = st.columns(2)
     with col1:
-        st.metric("Rows", data.shape[0])
+        col3,col4 = st.columns(2)
+        with col3:
+            st.markdown(
+                    f"""
+                    <div style="
+                        border: 2px solid #ddd;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        background-color: #f9f9f9;
+                        text-align: center;
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    ">
+                    <h2 style="margin: 0; color: #333;">Rows</h2>
+                    <h2 style="margin: 0; color: #333;">{data.shape[0]}</h2>
+                    </div>
+                    """,unsafe_allow_html=True)
+        with col4:
+            st.markdown(
+                    f"""
+                    <div style="
+                        border: 2px solid #ddd;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        background-color: #f9f9f9;
+                        text-align: center;
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    ">
+                    <h2 style="margin: 0; color: #333;">Columns</h2>
+                    <h2 style="margin: 0; color: #333;">{data.shape[1]}</h2>
+                    </div>
+                    """,unsafe_allow_html=True)
     with col2:
-        st.metric("Columns", data.shape[1])
+        data_cleaned = data.drop_duplicates()
+        shape = data_cleaned.shape
+        col3,col4 = st.columns(2)
+        with col3:
+            st.markdown(
+                    f"""
+                    <div style="
+                        border: 2px solid #ddd;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        background-color: #f9f9f9;
+                        text-align: center;
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    ">
+                    <h2 style="margin: 0; color: #333;">Duplicates</h2>
+                    <h2 style="margin: 0; color: #333;">{data_cleaned.shape[0]}</h2>
+                    </div>
+                    """,unsafe_allow_html=True)
+            # st.metric("**Duplicates**",data_cleaned.shape[0])
+        with col4:
+            pass
     st.write("### Data Summary")
-    st.dataframe(st.session_state["summary"])
-    st.info(f"After removing duplicates: {st.session_state['data_cleaned'].shape[0]} rows remain")
+    # st.dataframe(st.session_state["summary"])
+    # st.info(f"After removing duplicates: {st.session_state['data_cleaned'].shape[0]} rows remain")
+    cards = 3  
+    columns = list(data.select_dtypes(include=['int64','float64']).columns)
+    for i in range(0, len(columns), cards):
+        row_cols = st.columns(cards)
+        for j, col_name in enumerate(columns[i:i + cards]):
+            col_data = data[col_name]
+            with row_cols[j]:
+                st.markdown(
+                    f"""
+                    <div style="
+                        border: 2px solid #ddd;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        background-color: #f9f9f9;
+                        text-align: center;
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    ">
+                        <h3 style="margin: 0; color: #333;">{col_name}</h3>
+                        <p style="margin: 5px 0;"><strong>Missing:</strong> {col_data.isna().sum():.2f}</p>
+                        <p style="margin: 5px 0;"><strong>Mean:</strong> {col_data.mean() }</p>
+                        <p style="margin: 5px 0;"><strong>Median:</strong> {col_data.median() }</p>
+                        <p style="margin: 5px 0;"><strong>Std Dev:</strong> {col_data.std() }</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True )
     col1,col2 = st.columns(2)
     if col1.button("⬅️ Back"):
         next_page("upload")
