@@ -11,7 +11,8 @@ import io
 from sklearn.metrics import accuracy_score, mean_squared_error, r2_score
 import numpy as np
 
-st.title("AutoML")
+st.title("MLify")
+st.set_page_config(page_title="MLify",page_icon="🤖",layout="wide")
 
 if "page" not in st.session_state:
     st.session_state["page"] = "upload"
@@ -170,3 +171,4 @@ elif st.session_state["page"] == "pkl":
     if col1.button("⬅️ Back"):
         next_page("training")
         st.rerun()
+
