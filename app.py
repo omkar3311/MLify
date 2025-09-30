@@ -3,15 +3,43 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier , GradientBoostingRegressor
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.preprocessing import LabelEncoder
+from sklearn.svm import SVC
 import pickle
 import io
 from sklearn.metrics import accuracy_score, mean_squared_error, r2_score
 import numpy as np
 
 st.set_page_config(page_title="MLify",page_icon="🤖",layout="wide")
+
+import streamlit as st
+
+st.markdown(
+    """
+    <style>
+    .css-18e3th9 { 
+        padding-top: 0rem;
+        padding-bottom: 0rem;
+        padding-left: 0rem;
+        padding-right: 0rem;
+        margin: 0;
+    }
+    body {
+        background: linear-gradient(to bottom, #6a0dad, #e6e6fa);
+        background-attachment: fixed;
+        margin: 0;
+        height: 100vh;
+        width: 100%;
+    }
+    .stApp, .css-1d391kg {
+        background-color: transparent;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 if "page" not in st.session_state:
     st.session_state["page"] = "upload"
@@ -24,7 +52,7 @@ def generate_plots(data):
     category = data.select_dtypes(include='object').columns
     numerical = data.select_dtypes(include=['int64','float64']).columns
     for col in category:
-        fig, ax = plt.subplots(2,1, figsize=(8, 8))
+        fig, ax = plt.subplots(2,1, figsize=(8, 15))
         counts = data[col].value_counts().head(20)
         sns.countplot(x=data[col], order=counts.index, ax=ax[0])
         ax[0].tick_params(axis='x', rotation=45)
@@ -33,7 +61,7 @@ def generate_plots(data):
         ax[1].set_title(f"Pie Chart: {col}")
         plots[col] = fig
     for col in numerical:
-        fig, ax = plt.subplots(2,1, figsize=(8, 8))
+        fig, ax = plt.subplots(2,1, figsize=(8, 15))
         sns.histplot(data[col], bins=10, kde=True, ax=ax[0])
         ax[0].set_title(f"Histogram: {col}")
         sns.boxplot(x=data[col], ax=ax[1])
@@ -52,13 +80,43 @@ def model_training(model, x, y, task="classification"):
         model.fit(x_train, y_train)
         y_pred = model.predict(x_test)
         if task == "classification":
-            score = int(accuracy_score(y_test, y_pred) * 100)
-            st.metric(f"Accuracy for {model.__class__.__name__}", f"{score}%")
+            col1,col2,col3 = st.columns(3)
+            with col1:
+                score = int(accuracy_score(y_test, y_pred) * 100)
+                st.markdown(f"""
+                            <div  style = "color: #333;">
+                            <h5>{model.__class__.__name__}</h5>
+                            <hr>
+                        """,unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"""
+                            <div  style = "color: #333;">
+                            <h5>{score}%</h5>
+                            <hr>
+                        """,unsafe_allow_html=True)
+            with col3:
+                st.progress(score)
+            
         else:
-            rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+            # rmse = np.sqrt(mean_squared_error(y_test, y_pred))
             r2 = r2_score(y_test, y_pred)
-            st.metric(f"RMSE for {model.__class__.__name__}", f"{rmse:.2f}")
-            st.metric(f"R² for {model.__class__.__name__}", f"{r2:.2f}")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.markdown(f"""
+                    <div style="color: #333; text-align:center;">
+                        <h5>{model.__class__.__name__}</h5>
+                        <hr>
+                    </div>
+                """, unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"""
+                    <div style="color: #333; text-align:center;">
+                        <h5>R²: {r2:.2f}</h5>
+                        <hr>
+                    </div>
+                """, unsafe_allow_html=True)
+            with col3:
+                st.progress(r2)
             score = r2
     return score
 def page_title(title):
@@ -92,10 +150,11 @@ if st.session_state["page"] == "upload":
         """,
         unsafe_allow_html=True )
     file = st.file_uploader("Upload Your CSV File", type=["csv"])
-    if file is not None and "data" not in st.session_state:
+    if file is not None :
         with st.spinner("**Processing data...**"):
             st.session_state["data"] = pd.read_csv(file)
             st.session_state["summary"] = st.session_state["data"].describe().loc[['std','mean','count','50%']]
+        with st.spinner("**Generating plots...**"):
             st.session_state["data_cleaned"] = st.session_state["data"].drop_duplicates()
             st.session_state["plots"] = generate_plots(st.session_state["data_cleaned"])
         st.success("Processing complete ✅")
@@ -123,11 +182,11 @@ elif st.session_state["page"] == "EDA_Summary":
             st.markdown(
                     f"""
                     <div style="
-                        border: 2px solid #ddd;
+                        border: 2px solid black;
                         border-radius: 8px;
                         padding: 15px;
                         margin-bottom: 15px;
-                        background-color: #f9f9f9;
+                        background-color: transparent;
                         text-align: center;
                         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                     ">
@@ -139,11 +198,11 @@ elif st.session_state["page"] == "EDA_Summary":
             st.markdown(
                     f"""
                     <div style="
-                        border: 2px solid #ddd;
+                        border: 2px solid black;
                         border-radius: 8px;
                         padding: 15px;
                         margin-bottom: 15px;
-                        background-color: #f9f9f9;
+                        background-color: transparent;
                         text-align: center;
                         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                     ">
@@ -159,11 +218,11 @@ elif st.session_state["page"] == "EDA_Summary":
             st.markdown(
                     f"""
                     <div style="
-                        border: 2px solid #ddd;
+                        border: 2px solid black;
                         border-radius: 8px;
                         padding: 15px;
                         margin-bottom: 15px;
-                        background-color: #f9f9f9;
+                        background-color: transparent;
                         text-align: center;
                         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                     ">
@@ -184,19 +243,19 @@ elif st.session_state["page"] == "EDA_Summary":
                 st.markdown(
                     f"""
                     <div style="
-                        border: 2px solid #ddd;
+                        border: 2px solid black;
                         border-radius: 8px;
                         padding: 15px;
                         margin-bottom: 15px;
-                        background-color: #f9f9f9;
+                        background-color: transparent;
                         text-align: center;
                         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                     ">
                         <h4 style="margin: 0; color: #333;">{col_name}</h4>
-                        <p style="margin: 5px 0;"><strong>Missing:</strong> {col_data.isna().sum():.2f}</p>
-                        <p style="margin: 5px 0;"><strong>Mean:</strong> {col_data.mean() }</p>
-                        <p style="margin: 5px 0;"><strong>Median:</strong> {col_data.median() }</p>
-                        <p style="margin: 5px 0;"><strong>Std Dev:</strong> {col_data.std() }</p>
+                        <p style="margin: 5px 0;color: #333;"><strong>Missing:</strong> {col_data.isna().sum():.2f}</p>
+                        <p style="margin: 5px 0;color: #333;"><strong>Mean:</strong> {col_data.mean() }</p>
+                        <p style="margin: 5px 0;color: #333;"><strong>Median:</strong> {col_data.median() }</p>
+                        <p style="margin: 5px 0;color: #333;"><strong>Std Dev:</strong> {col_data.std() }</p>
                     </div>
                     """,
                     unsafe_allow_html=True )
@@ -217,11 +276,11 @@ elif st.session_state["page"] == "visualizations":
                     st.markdown(
                         f"""
                         <div style="
-                            border: 2px solid #ddd;
+                            border: 2px solid black;
                             border-radius: 8px;
                             padding: 15px;
                             margin-bottom: 15px;
-                            background-color: #f9f9f9;
+                            background-color: transparent;
                             text-align: center;
                             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                         ">
@@ -239,12 +298,13 @@ elif st.session_state["page"] == "visualizations":
                 st.markdown(
                     f"""
                     <div style="
-                        border: 2px solid #ddd;
+                        border: 2px solid black;
                         border-radius: 8px;
                         padding: 15px;
                         margin-bottom: 15px;
-                        background-color: #f9f9f9;
+                        background-color: transparent;
                         text-align: center;
+                        color: #333;
                         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                     ">
                         <h4 style="margin: 0; color: #333;">{col_name}</h4>
@@ -276,18 +336,20 @@ elif st.session_state["page"] == "engg_feature":
     with col1:
         st.markdown(
                 f""" <div style="
-                            border: 2px solid #ddd;
+                            border: 2px solid black;
                             border-radius: 8px;
                             padding: 15px;
-                            background-color: #f9f9f9;
+                            background-color: transparent;
                             text-align: center;
                             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                             width: 500px;
-                            margin-left : 70px;
+                            margin-left : 60px;
+                            color: #333;
+                            margin-right : 10px;
                         ">
                             <h2>Categorical Columns</h2>
-                            <hr>
-                            <h4>{categorical_html}</h4>
+                            <hr style = "color: #333;">
+                            <h4 >{categorical_html}</h4>
                         </div>
                         </div>
                 """,
@@ -295,13 +357,15 @@ elif st.session_state["page"] == "engg_feature":
     with col2:
         st.markdown(
                 f""" <div style="
-                            border: 2px solid #ddd;
+                            border: 2px solid black;
                             border-radius: 8px;
                             padding: 15px;
-                            background-color: #f9f9f9;
+                            background-color: transparent;
                             text-align: center;
                             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                             width: 500px;
+                            color: #333;
+                            margin-left : 10px;
                         ">
                             <h2>Numerical Columns</h2>
                             <hr>
@@ -320,6 +384,7 @@ elif st.session_state["page"] == "engg_feature":
     new_pages("visualizations","training")
 
 elif st.session_state["page"] == "training":
+    page_title("Model Training")
     data = st.session_state["data"].copy()
     target = st.session_state["target"]
     category = data.select_dtypes(include='object').columns
@@ -332,38 +397,56 @@ elif st.session_state["page"] == "training":
         task = "classification"
     else:
         task = "regression"
-    st.write("### Model Training")
     if task == "classification":
         RF = model_training(RandomForestClassifier(n_estimators=5), x, y, task="classification")
         LR = model_training(LogisticRegression(max_iter=1000), x, y, task="classification")
-        if RF > LR:
+        SV = model_training(SVC(C = 1,kernel='rbf'), x, y, task="classification")
+        if RF > LR and RF > SV:
             best_model, best_model_name = RandomForestClassifier(n_estimators=5), "RandomForestClassifier"
-        else:
+        elif LR > SV:
             best_model, best_model_name = LogisticRegression(max_iter=1000), "LogisticRegression"
+        else:
+            best_model, best_model_name = SVC(C = 1,kernel='rbf'), "SVC"
     else:
-        score = model_training(LinearRegression(), x, y, task="regression")
-        best_model, best_model_name = LinearRegression(), "LinearRegression"
+        LR = model_training(LinearRegression(), x, y, task="regression")
+        GB = model_training(GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), x, y, task="regression")
+        if LR > GB :
+            best_model, best_model_name = LinearRegression(), "LinearRegression"
+        else:
+            best_model, best_model_name = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), "GradientBoosting"
     best_model.fit(x, y)
     st.session_state["best_model"] = best_model
     st.session_state["best_model_name"] = best_model_name
-    col1,col2 = st.columns(2)
-    new_pages("engg_feature","pkl")
-
-elif st.session_state["page"] == "pkl":
-    best_model = st.session_state["best_model"]
-    best_model_name = st.session_state["best_model_name"]
     buffer = io.BytesIO()
     pickle.dump(best_model, buffer)
     buffer.seek(0)
-    st.success(f"{best_model_name} model saved successfully!")
-    st.download_button(
+    st.markdown(f"""
+            <div style= "
+                border: 2px solid black;
+                            border-radius: 8px;
+                            padding: 15px;
+                            background-color: #90EE90;
+                            text-align: center;
+                            margin-left : 25%;
+                            margin-bottom:30px;
+                            width : 60%; 
+                            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                "><h4> {best_model_name} model saved successfully!</h4>
+            </div>
+        """,unsafe_allow_html=True )
+    col1,col2,col3 = st.columns(3)
+    with col2:
+        st.download_button(
         label=f"Download {best_model_name} Model",
         data=buffer,
         file_name=f"{best_model_name}_model.pkl",
         mime="application/octet-stream")
     col1,col2 = st.columns(2)
+    col1,col2 = st.columns(2)
     if col1.button("⬅️ Back"):
-        next_page("training")
+        next_page("engg_feature")
         st.rerun()
-
-
+    if col2.button("➡️ start Over"):
+        next_page("upload")
+        st.session_state["data"] = None
+        st.rerun()
