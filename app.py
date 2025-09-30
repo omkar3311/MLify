@@ -61,6 +61,24 @@ def model_training(model, x, y, task="classification"):
             st.metric(f"R² for {model.__class__.__name__}", f"{r2:.2f}")
             score = r2
     return score
+def page_title(title):
+    st.markdown(f"""
+            <div style = "
+                text-align: center;
+                margin-top : 0px;
+                margin-bottom : 40px;
+                ">
+                <h1>{title}</h1>
+                </div>
+            """,unsafe_allow_html=True )
+def new_pages(back,next):
+    col1,col2 = st.columns(2)
+    if col1.button("⬅️ Back"):
+        next_page(back)
+        st.rerun()
+    if col2.button("➡️ Next"):
+        next_page(next)
+        st.rerun()
 
 if st.session_state["page"] == "upload":
     st.markdown(
@@ -96,6 +114,7 @@ if st.session_state["page"] == "upload":
                 st.rerun()
 
 elif st.session_state["page"] == "EDA_Summary":
+    page_title("EDA")
     data = st.session_state["data"]
     col1,col2 = st.columns(2)
     with col1:
@@ -152,12 +171,9 @@ elif st.session_state["page"] == "EDA_Summary":
                     <h2 style="margin: 0; color: #333;">{data_cleaned.shape[0]}</h2>
                     </div>
                     """,unsafe_allow_html=True)
-            # st.metric("**Duplicates**",data_cleaned.shape[0])
         with col4:
             pass
     st.write("### Data Summary")
-    # st.dataframe(st.session_state["summary"])
-    # st.info(f"After removing duplicates: {st.session_state['data_cleaned'].shape[0]} rows remain")
     cards = 3  
     columns = list(data.select_dtypes(include=['int64','float64']).columns)
     for i in range(0, len(columns), cards):
@@ -184,20 +200,13 @@ elif st.session_state["page"] == "EDA_Summary":
                     </div>
                     """,
                     unsafe_allow_html=True )
-    col1,col2 = st.columns(2)
-    if col1.button("⬅️ Back"):
-        next_page("upload")
-        st.rerun()
-    if col2.button("➡️ Next"):
-        next_page("visualizations")
-        st.rerun()
+    new_pages("upload","visualizations")
 
 elif st.session_state["page"] == "visualizations":
-    st.write("### All Column Visualizations")
-    
+    page_title("Visualizations")
     data = st.session_state["data"].copy()
     categorical = data.select_dtypes(include='object').columns.tolist()
-    numerical = data.select_dtypes(include=['int64', 'float64']).columns.tolist()  
+    numerical = data.select_dtypes(include=['int64', 'float64']).columns.tolist()
     st.write("## Categorical Features")
     cards = 2
     for i in range(0, len(categorical), cards):
@@ -246,14 +255,69 @@ elif st.session_state["page"] == "visualizations":
                 st.pyplot(st.session_state["plots"][col_name])
     st.write("### Correlation Heatmap")
     st.pyplot(st.session_state["plots"]["__heatmap__"])
-    col1, col2 = st.columns(2)
-    if col1.button("⬅️ Back"):
-        next_page("EDA_Summary")
-        st.rerun()
-    if col2.button("➡️ Next"):
-        next_page("training")
-        st.rerun()
+    new_pages("EDA_Summary","engg_feature")
 
+elif st.session_state["page"] == "engg_feature":
+    data = st.session_state["data"].copy()
+    categorical = data.select_dtypes(include='object').columns.tolist()
+    numerical = data.select_dtypes(include=['int64', 'float64']).columns.tolist()
+    categorical_html = "<hr>".join(categorical)
+    numerical_html = "<hr>".join(numerical)
+    st.markdown(f"""
+            <div style = "
+                text-align: center;
+                margin-top : 0px;
+                margin-bottom : 40px;
+                ">
+                <h1>Feature Engineering</h1>
+                </div>
+            """,unsafe_allow_html=True )
+    col1,col2 = st.columns(2)
+    with col1:
+        st.markdown(
+                f""" <div style="
+                            border: 2px solid #ddd;
+                            border-radius: 8px;
+                            padding: 15px;
+                            background-color: #f9f9f9;
+                            text-align: center;
+                            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                            width: 500px;
+                            margin-left : 70px;
+                        ">
+                            <h2>Categorical Columns</h2>
+                            <hr>
+                            <h4>{categorical_html}</h4>
+                        </div>
+                        </div>
+                """,
+                unsafe_allow_html=True )
+    with col2:
+        st.markdown(
+                f""" <div style="
+                            border: 2px solid #ddd;
+                            border-radius: 8px;
+                            padding: 15px;
+                            background-color: #f9f9f9;
+                            text-align: center;
+                            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                            width: 500px;
+                        ">
+                            <h2>Numerical Columns</h2>
+                            <hr>
+                            <h4>{numerical_html}</h4>
+                        </div>
+                        </div>
+                """,
+                unsafe_allow_html=True )
+    st.markdown(f"""
+                    <div style = "
+                    height:20px;
+                    border: 0px solid #ddd;
+                    border-radius: 8px;
+                    " >  </div>
+                    """,unsafe_allow_html=True )
+    new_pages("visualizations","training")
 
 elif st.session_state["page"] == "training":
     data = st.session_state["data"].copy()
@@ -283,12 +347,7 @@ elif st.session_state["page"] == "training":
     st.session_state["best_model"] = best_model
     st.session_state["best_model_name"] = best_model_name
     col1,col2 = st.columns(2)
-    if col1.button("⬅️ Back"):
-        next_page("visualizations")
-        st.rerun()
-    if col2.button("➡️ Next"):
-        next_page("pkl")
-        st.rerun()
+    new_pages("engg_feature","pkl")
 
 elif st.session_state["page"] == "pkl":
     best_model = st.session_state["best_model"]
