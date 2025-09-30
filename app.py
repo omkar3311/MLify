@@ -119,14 +119,14 @@ def model_training(model, x, y, task="classification"):
                 st.progress(r2)
             score = r2
     return score
-def page_title(title):
+def page_title(title,emoji=""):
     st.markdown(f"""
             <div style = "
                 text-align: center;
                 margin-top : 0px;
                 margin-bottom : 40px;
                 ">
-                <h1>{title}</h1>
+                <h1>{emoji} {title}</h1>
                 </div>
             """,unsafe_allow_html=True )
 def new_pages(back,next):
@@ -142,14 +142,14 @@ if st.session_state["page"] == "upload":
     st.markdown(
         """
         <div style='display: flex; flex-direction: column; justify-content: center; align-items: center; height: 40vh;'>
-            <h1 style='font-size: 80px; font-weight: bold; margin: 0;'>MLify</h1>
-            <p style='font-size: 24px; color: gray; margin-top: 0px;'>
+            <h1 style='font-size: 80px; font-weight: bold; margin: 0;'>🤖 MLify</h1>
+            <p style='font-size: 24px; color: black; margin-top: 0px;'>
                 Your Gateway to Smarter Data Insights
             </p>
         </div>
         """,
         unsafe_allow_html=True )
-    file = st.file_uploader("Upload Your CSV File", type=["csv"])
+    file = st.file_uploader("**Upload Your CSV File 📂**", type=["csv"])
     if file is not None :
         with st.spinner("**Processing data...**"):
             st.session_state["data"] = pd.read_csv(file)
@@ -173,7 +173,7 @@ if st.session_state["page"] == "upload":
                 st.rerun()
 
 elif st.session_state["page"] == "EDA_Summary":
-    page_title("EDA")
+    page_title("EDA", "📊")
     data = st.session_state["data"]
     col1,col2 = st.columns(2)
     with col1:
@@ -262,7 +262,7 @@ elif st.session_state["page"] == "EDA_Summary":
     new_pages("upload","visualizations")
 
 elif st.session_state["page"] == "visualizations":
-    page_title("Visualizations")
+    page_title("Visualizations", "📈")
     data = st.session_state["data"].copy()
     categorical = data.select_dtypes(include='object').columns.tolist()
     numerical = data.select_dtypes(include=['int64', 'float64']).columns.tolist()
@@ -323,15 +323,7 @@ elif st.session_state["page"] == "engg_feature":
     numerical = data.select_dtypes(include=['int64', 'float64']).columns.tolist()
     categorical_html = "<hr>".join(categorical)
     numerical_html = "<hr>".join(numerical)
-    st.markdown(f"""
-            <div style = "
-                text-align: center;
-                margin-top : 0px;
-                margin-bottom : 40px;
-                ">
-                <h1>Feature Engineering</h1>
-                </div>
-            """,unsafe_allow_html=True )
+    page_title("Feature Engineering", "🛠️")
     col1,col2 = st.columns(2)
     with col1:
         st.markdown(
@@ -384,7 +376,7 @@ elif st.session_state["page"] == "engg_feature":
     new_pages("visualizations","training")
 
 elif st.session_state["page"] == "training":
-    page_title("Model Training")
+    page_title("Model Training", "🤖")
     data = st.session_state["data"].copy()
     target = st.session_state["target"]
     category = data.select_dtypes(include='object').columns
@@ -431,7 +423,7 @@ elif st.session_state["page"] == "training":
                             margin-bottom:30px;
                             width : 60%; 
                             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                "><h4> {best_model_name} model saved successfully!</h4>
+                "><h4>✅ {best_model_name} model saved successfully!</h4>
             </div>
         """,unsafe_allow_html=True )
     col1,col2,col3 = st.columns(3)
@@ -446,7 +438,7 @@ elif st.session_state["page"] == "training":
     if col1.button("⬅️ Back"):
         next_page("engg_feature")
         st.rerun()
-    if col2.button("➡️ start Over"):
+    if col2.button("🔄 start Over"):
         next_page("upload")
         st.session_state["data"] = None
         st.rerun()
