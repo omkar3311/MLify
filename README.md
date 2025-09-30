@@ -23,6 +23,9 @@ An interactive web application built with **Streamlit** that allows users to:
 
 ---
 
+![Demo ScreenShot](mlify.jpg)
+
+---
 ## 📦 Installation
 
 Clone the repository and install dependencies:
