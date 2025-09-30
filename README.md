@@ -23,7 +23,7 @@ An interactive web application built with **Streamlit** that allows users to:
 
 ---
 
-![Demo ScreenShot](mlify.jpg)
+![Demo ScreenShot](mlify.png)
 
 ---
 ## 📦 Installation
