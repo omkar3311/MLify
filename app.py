@@ -73,7 +73,23 @@ def generate_plots(data):
         sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax)
         plots["__heatmap__"] = fig
     return plots
-
+if "adv_plot" not in st.session_state:
+    st.session_state["adv_plot"] = {}
+def adv_plot(selected_plot, data, x, y=None, hue=None):
+    fig, ax = plt.subplots(figsize=(8, 6))
+    if selected_plot == "scatterplot":
+        sns.scatterplot(data=data, x=x, y=y, hue=hue, ax=ax)
+    elif selected_plot == "lineplot":
+        sns.lineplot(data=data, x=x, y=y, hue=hue, ax=ax)
+    elif selected_plot == "histplot":
+        sns.histplot(data=data, x=x, hue=hue, ax=ax, kde=True)
+    elif selected_plot == "barplot":
+        sns.barplot(data=data, x=x, y=y, hue=hue, ax=ax)
+    elif selected_plot == "boxplot":
+        sns.boxplot(data=data, x=x, y=y, hue=hue, ax=ax)
+    st.pyplot(fig)
+    plot_key = f"{selected_plot}_{x}_{y if y else 'None'}"
+    st.session_state["adv_plot"][plot_key] = fig
 def model_training(model, x, y, task="classification"):
     with st.spinner(f"Training {model.__class__.__name__}..."):
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42)
@@ -315,8 +331,66 @@ elif st.session_state["page"] == "visualizations":
                 st.pyplot(st.session_state["plots"][col_name])
     st.write("### Correlation Heatmap")
     st.pyplot(st.session_state["plots"]["__heatmap__"])
-    new_pages("EDA_Summary","engg_feature")
+    col1,col2,col3 = st.columns(3)
+    if col1.button("⬅️ Back"):
+        next_page("EDA_Summary")
+        st.rerun()
+    if col2.button("➡️ Next"):
+        next_page("engg_feature")
+        st.rerun()
+    if col3.button("➡️ Advance Visualization"):
+        next_page("adv_visualization")
+        st.rerun()
+    # new_pages("EDA_Summary","engg_feature")
+elif st.session_state["page"] == "adv_visualization":
+    data = st.session_state["data"].copy()
+    seaborn = ["scatterplot","lineplot","histplot","barplot","boxplot",]
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("<h4 style='margin-bottom:0.2rem; color:#333;'>Choose Plot Type</h4>", unsafe_allow_html=True)
+        selected_plot = st.selectbox(" ", seaborn, label_visibility="collapsed")
 
+        st.markdown("<h4 style='margin-bottom:0.2rem; color:#333;'>Choose Hue</h4>", unsafe_allow_html=True)
+        hue = st.selectbox(" ", [None] + list(data.columns), label_visibility="collapsed")  
+    with col2:
+        st.markdown("<h4 style='margin-bottom:0.2rem; color:#333;'>Choose X-axis</h4>", unsafe_allow_html=True)
+        x = st.selectbox(" ", data.columns, label_visibility="collapsed")
+
+        if selected_plot in ["scatterplot", "lineplot", "barplot", "boxplot"]:
+            st.markdown("<h4 style='margin-bottom:0.2rem; color:#333;'>Choose Y-axis</h4>", unsafe_allow_html=True)
+            y_cols = [col for col in data.columns if col != x]
+            y = st.selectbox(" ", y_cols, label_visibility="collapsed")
+    col3,col4 = st.columns(2)
+    with col4:
+        if st.button("Generate Plot"):
+            adv_plot(selected_plot,data,x,y,hue)
+    if len(st.session_state["plots"]) > 1:
+        st.subheader("📜 Previous Plots")
+        plots_list = list(st.session_state["adv_plot"].items())
+        cards = 2
+        for i in range(0, len(plots_list), cards):
+            row_cols = st.columns(cards)
+            for j, (plot_name, fig) in enumerate(plots_list[i:i + cards]):
+                with row_cols[j]:
+                    st.markdown(
+                        f"""
+                        <div style="
+                            border: 2px solid black;
+                            border-radius: 8px;
+                            padding: 15px;
+                            margin-bottom: 15px;
+                            background-color: transparent;
+                            text-align: center;
+                            color: #333;
+                            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                        ">
+                            <h4 style="margin: 0; color: #333;">{plot_name}</h4>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                    st.pyplot(fig)
+    new_pages("visualizations","engg_feature")
 elif st.session_state["page"] == "engg_feature":
     data = st.session_state["data"].copy()
     categorical = data.select_dtypes(include='object').columns.tolist()
