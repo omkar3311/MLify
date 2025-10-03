@@ -516,7 +516,7 @@ elif st.session_state["page"] == "training":
         next_page("upload")
         st.session_state["data"] = None
         st.rerun()
-    if col2.button("Hyperparameter tunning"):
+    if col3.button("🎛️ Hyperparameter tunning"):
         next_page("adv_training")
         st.rerun()
 if "models" not in st.session_state:
@@ -530,7 +530,6 @@ elif st.session_state["page"] == "adv_training":
         data[col] = label.fit_transform(data[col])
     x = data.drop(columns=[target])
     y = data[target]
-    
     params = {}
     if y.dtype == "object" or len(y.unique()) < 20:
         task = "classification"
