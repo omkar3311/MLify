@@ -508,7 +508,7 @@ elif st.session_state["page"] == "training":
         file_name=f"{best_model_name}_model.pkl",
         mime="application/octet-stream")
     col1,col2 = st.columns(2)
-    col1,col2 = st.columns(2)
+    col1,col2,col3 = st.columns(3)
     if col1.button("⬅️ Back"):
         next_page("engg_feature")
         st.rerun()
@@ -516,3 +516,100 @@ elif st.session_state["page"] == "training":
         next_page("upload")
         st.session_state["data"] = None
         st.rerun()
+    if col2.button("Hyperparameter tunning"):
+        next_page("adv_training")
+        st.rerun()
+if "models" not in st.session_state:
+    st.session_state.models = []
+elif st.session_state["page"] == "adv_training":
+    data = st.session_state["data"].copy()
+    target = st.session_state["target"]
+    category = data.select_dtypes(include='object').columns
+    label = LabelEncoder()
+    for col in category:
+        data[col] = label.fit_transform(data[col])
+    x = data.drop(columns=[target])
+    y = data[target]
+    
+    params = {}
+    if y.dtype == "object" or len(y.unique()) < 20:
+        task = "classification"
+    else:
+        task = "regression"
+    if task == "classification":
+        col1,col2 = st.columns(2)
+        with col1:
+            model_choice = st.selectbox("Select Model",["Logistic Regression", "Random Forest", "SVM"])
+        test_size = st.slider("Test Size (%)", 10, 50, 20, step=5) / 100
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=42)
+        with st.spinner(f"{model_choice} Training..."):
+            if model_choice == "Logistic Regression":
+                params["C"] = st.number_input("Regularization Strength (C)", 0.01, 10.0, 1.0)
+                params["max_iter"] = st.slider("Max Iterations", 100, 1000, 200)
+                model = LogisticRegression(C=params["C"], max_iter=params["max_iter"])
+            elif model_choice == "Random Forest":
+                params["n_estimators"] = st.slider("Number of Trees", 10, 500, 100)
+                params["max_depth"] = st.slider("Max Depth", 1, 20, 5)
+                model = RandomForestClassifier(
+                    n_estimators=params["n_estimators"],
+                    max_depth=params["max_depth"],
+                    random_state=42)
+            elif model_choice == "SVM":
+                params["C"] = st.number_input("Regularization (C)", 0.01, 10.0, 1.0)
+                params["kernel"] = st.selectbox("Kernel", ["linear", "rbf", "poly", "sigmoid"])
+                model = SVC(C=params["C"], kernel=params["kernel"], probability=True)
+    else:
+        col1,col2 = st.columns(2)
+        with col1:
+            model_choice = st.selectbox("Select Model",["Linear Regression", "Gradient Boosting"])
+        test_size = st.slider("Test Size (%)", 10, 50, 20, step=5) / 100
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=42)
+        with st.spinner(f"{model_choice} Training..."):
+            if model_choice == "Linear Regression":
+                params["fit_intercept"] = True 
+                model = LinearRegression()
+            elif model_choice == "Gradient Boosting":
+                params["n_estimators"] = st.slider("Number of Estimators", 50, 500, 100)
+                params["learning_rate"] = st.number_input("Learning Rate", 0.01, 1.0, 0.1)
+                model = GradientBoostingRegressor(
+                    n_estimators=params["n_estimators"],
+                    learning_rate=params["learning_rate"],
+                    random_state=42)
+    if st.button("Train Model"):
+        model.fit(x_train, y_train)
+        y_pred = model.predict(x_test)
+        if model_choice in ["Logistic Regression", "Random Forest", "SVM"]:
+            score = accuracy_score(y_test, y_pred)
+            metric_name = "Accuracy"
+        else:
+            score = mean_squared_error(y_test, y_pred)
+            metric_name = "MSE"
+        st.success(f"{model_choice} trained! {metric_name}: {score:.4f}")
+        pickle_file = f"{model_choice.replace(' ', '_').lower()}_model.pkl"
+        with open(pickle_file, "wb") as f:
+            pickle.dump(model, f)
+        st.session_state.models.append({
+            "name": model_choice,
+            "model": model,
+            "score": score,
+            "metric": metric_name,
+            "file": pickle_file,
+            "params": params
+        })
+    if st.session_state.models:
+        st.write("## Trained Models History")
+        cols = st.columns(2)
+        for i, entry in enumerate(st.session_state.models, 1):
+            col = cols[(i - 1) % 2] 
+            with col:
+                st.write(f"### {i}. {entry['name']}")
+                st.write(f"Performance: {entry['metric']} = {entry['score']:.4f}")
+                if entry["params"]:
+                    st.write("**Hyperparameters used:**")
+                    st.json(entry["params"])
+                with open(entry["file"], "rb") as f:
+                    st.download_button(
+                        label=f"Download {entry['name']} Model",
+                        data=f,
+                        file_name=entry["file"],
+                        key=f"download_{i}")
