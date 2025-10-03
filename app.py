@@ -612,3 +612,11 @@ elif st.session_state["page"] == "adv_training":
                         data=f,
                         file_name=entry["file"],
                         key=f"download_{i}")
+    col3,col4 = st.columns(2)
+    if col3.button("⬅️ Back", key=f"back_{i}"):
+        next_page("training")
+        st.rerun()
+    if col4.button("🔄 start Over", key=f"startover_{i}"):
+        next_page("upload")
+        st.session_state["data"] = None
+        st.rerun()               
