@@ -3,13 +3,20 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier , GradientBoostingRegressor
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from wordcloud import WordCloud
 import pickle
 import io
-from sklearn.metrics import accuracy_score, mean_squared_error, r2_score
+import re
+from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
 import numpy as np
 
 st.set_page_config(page_title="MLify",page_icon="🤖",layout="wide")
@@ -42,8 +49,9 @@ st.markdown(
 )
 
 if "page" not in st.session_state:
-    st.session_state["page"] = "upload"
-
+    st.session_state["page"] = "home"
+if "data" not in st.session_state:
+        st.session_state["data"] = None
 def next_page(p):
     st.session_state["page"] = p
 
@@ -90,6 +98,36 @@ def adv_plot(selected_plot, data, x, y=None, hue=None):
     st.pyplot(fig)
     plot_key = f"{selected_plot}_{x}_{y if y else 'None'}"
     st.session_state["adv_plot"][plot_key] = fig
+def unsupervised_graph():
+    if "nlp_plots" not in st.session_state:
+        st.session_state["nlp_plots"] = {}
+    X = st.session_state["X"]
+    k_values = range(2, 11)
+    wcss, sil = [], []
+    progress = st.progress(0)
+    for idx, k in enumerate(k_values):
+        kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+        labels = kmeans.fit_predict(X)
+        wcss.append(kmeans.inertia_)
+        sil.append(silhouette_score(X, labels))
+        progress.progress((idx + 1) / len(k_values))
+    progress.empty()
+    fig_elbow, ax1 = plt.subplots(figsize=(6, 5))
+    ax1.plot(k_values, wcss, marker='o')
+    ax1.set_title("📉 Elbow Method for Optimal k")
+    ax1.set_xlabel("Number of Clusters (k)")
+    ax1.set_ylabel("WCSS")
+    fig_sil, ax2 = plt.subplots(figsize=(6, 5))
+    ax2.plot(k_values, sil, marker='x', color='orange')
+    ax2.set_title("📈 Silhouette Score vs k")
+    ax2.set_xlabel("Number of Clusters (k)")
+    ax2.set_ylabel("Silhouette Score")
+    st.session_state["nlp_plots"]["elbow"] = fig_elbow
+    st.session_state["nlp_plots"]["silhouette"] = fig_sil
+    best_k = k_values[np.argmax(sil)]
+    st.session_state["best_k"] = best_k
+    st.session_state["sil_scores"] = sil
+    st.success(f"✅ Best k (Silhouette Score): **{best_k}** (Score = {max(sil):.4f})")
 def model_training(model, x, y, task="classification"):
     with st.spinner(f"Training {model.__class__.__name__}..."):
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42)
@@ -153,12 +191,67 @@ def new_pages(back,next):
     if col2.button("➡️ Next"):
         next_page(next)
         st.rerun()
-
-if st.session_state["page"] == "upload":
+def clean_text(text):
+        text = str(text).lower()
+        text = re.sub(r'\[.*?\]', '', text)
+        text = re.sub(r'https?://\S+|www\.\S+', '', text)
+        text = re.sub(r'<.*?>+', '', text)
+        text = re.sub(r'[^a-z\s]', ' ', text)
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+if st.session_state["page"] == "home":
     st.markdown(
         """
         <div style='display: flex; flex-direction: column; justify-content: center; align-items: center; height: 40vh;'>
             <h1 style='font-size: 80px; font-weight: bold; margin: 0;'>🤖 MLify</h1>
+            <p style='font-size: 24px; color: black; margin-top: 0px;'>
+                Your Gateway to Smarter Data Insights
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True )
+    col1,col2 = st.columns(2)
+    with col1:
+        st.markdown(
+            f"""
+                    <div style="
+                        border: 2px solid black;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        background-color: transparent;
+                        text-align: center;
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    ">
+                    <h2 style="margin: 0; color: #333;">Classification</h2>
+                    </div>
+                    """,unsafe_allow_html=True)
+        if st.button("➡️ Get started"):
+            next_page("upload")
+            st.rerun()
+    with col2:
+         st.markdown(
+            f"""
+                    <div style="
+                        border: 2px solid black;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        background-color: transparent;
+                        text-align: center;
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    ">
+                    <h2 style="margin: 0; color: #333;">NLP</h2>
+                    </div>
+                    """,unsafe_allow_html=True)
+         if st.button("➡️ Get started",key = "nlp"):
+            next_page("nlp_home")
+            st.rerun()
+if st.session_state["page"] == "upload":
+    st.markdown(
+        """
+        <div style='display: flex; flex-direction: column; justify-content: center; align-items: center; height: 40vh;'>
+            <h1 style='font-size: 80px; font-weight: bold; margin: 0;'>Classification</h1>
             <p style='font-size: 24px; color: black; margin-top: 0px;'>
                 Your Gateway to Smarter Data Insights
             </p>
@@ -187,6 +280,10 @@ if st.session_state["page"] == "upload":
                 st.success(f"You selected **{target}** as the target column.")
                 next_page("EDA_Summary")
                 st.rerun()
+    else:
+        if st.button("⬅️ Back"):
+            next_page("home")
+            st.rerun()
 
 elif st.session_state["page"] == "EDA_Summary":
     page_title("EDA", "📊")
@@ -343,6 +440,7 @@ elif st.session_state["page"] == "visualizations":
         st.rerun()
     # new_pages("EDA_Summary","engg_feature")
 elif st.session_state["page"] == "adv_visualization":
+    page_title("Advanced Plots", "📊")
     data = st.session_state["data"].copy()
     seaborn = ["scatterplot","lineplot","histplot","barplot","boxplot",]
     col1, col2 = st.columns(2)
@@ -507,7 +605,6 @@ elif st.session_state["page"] == "training":
         data=buffer,
         file_name=f"{best_model_name}_model.pkl",
         mime="application/octet-stream")
-    col1,col2 = st.columns(2)
     col1,col2,col3 = st.columns(3)
     if col1.button("⬅️ Back"):
         next_page("engg_feature")
@@ -522,6 +619,7 @@ elif st.session_state["page"] == "training":
 if "models" not in st.session_state:
     st.session_state.models = []
 elif st.session_state["page"] == "adv_training":
+    page_title("Model Tunning","🤖")
     data = st.session_state["data"].copy()
     target = st.session_state["target"]
     category = data.select_dtypes(include='object').columns
@@ -613,10 +711,153 @@ elif st.session_state["page"] == "adv_training":
                         file_name=entry["file"],
                         key=f"download_{i}")
     col3,col4 = st.columns(2)
-    if col3.button("⬅️ Back", key=f"back_{i}"):
+    if col3.button("⬅️ Back"):
         next_page("training")
         st.rerun()
-    if col4.button("🔄 start Over", key=f"startover_{i}"):
+    if col4.button("🔄 start Over"):
         next_page("upload")
         st.session_state["data"] = None
-        st.rerun()               
+        st.rerun()
+elif st.session_state["page"] == "nlp_home":
+    st.markdown(
+        """
+        <div style='display: flex; flex-direction: column; justify-content: center; align-items: center; height: 40vh;'>
+            <h1 style='font-size: 80px; font-weight: bold; margin: 0;'>NLP</h1>
+            <p style='font-size: 24px; color: black; margin-top: 0px;'>
+                Your Gateway to Smarter Data Insights
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True )
+    file = st.file_uploader("📂 **Upload Your CSV File**", type=["csv"])
+    if file:
+            st.session_state["data"] = pd.read_csv(file)
+            data = st.session_state["data"].copy()
+            st.write("### 🔍 Data Preview")
+            st.dataframe(data.head())
+            st.session_state["text_col"] = st.selectbox("📝 Select Text Column", data.columns)
+            st.session_state["target_col"] = st.selectbox("🎯 Select Target Column (or choose 'None' for clustering)", ["None"] + list(data.columns))
+            if st.button("🚀 Run Analysis"):
+                with st.spinner("🧹 Cleaning text..."):
+                    data[st.session_state["text_col"]] = data[st.session_state["text_col"]].fillna("").apply(clean_text)
+                vectorizer = TfidfVectorizer(max_features=5000)
+                st.session_state["X"] = vectorizer.fit_transform(data[st.session_state["text_col"]])
+                if st.session_state["target_col"] != "None":
+                    next_page("supervised")
+                    st.rerun()
+                else:
+                    next_page("unsupervised")
+                    unsupervised_graph()
+                    st.rerun()
+    else:
+        if st.button("⬅️ Back"):
+            next_page("home")
+            st.rerun()
+elif st.session_state["page"] == "supervised":
+            page_title("Supervised NLP", "🧠")
+            data = st.session_state["data"].copy()
+            st.subheader("📘 Supervised Learning (Text Classification)")
+            y = data[st.session_state["target_col"]].astype(str)
+            X_train, X_test, y_train, y_test = train_test_split(st.session_state["X"], y, test_size=0.25, random_state=42)
+            models = {
+                "Logistic Regression": LogisticRegression(max_iter=200),
+                "Naive Bayes": MultinomialNB(),
+                "Linear SVM": LinearSVC()}
+            results = {}
+            trained_models = {}
+            for name, model in models.items():
+                model.fit(X_train, y_train)
+                preds = model.predict(X_test)
+                acc = accuracy_score(y_test, preds)
+                results[name] = acc
+                trained_models[name] = model
+            results_df = pd.DataFrame(list(results.items()), columns=["Model", "Accuracy"]).sort_values(by="Accuracy", ascending=False)
+            st.dataframe(results_df)
+            plt.figure(figsize=(6,3))
+            plt.bar(results_df["Model"], results_df["Accuracy"], color="teal")
+            plt.title("Model Accuracy Comparison")
+            plt.ylabel("Accuracy")
+            st.pyplot(plt.gcf())
+            plt.close()
+            best_model_name = results_df.iloc[0]["Model"]
+            best_model = trained_models[best_model_name]
+            st.success(f"🏆 Best Model: {best_model_name} (Accuracy: {results_df.iloc[0]['Accuracy']:.4f})")
+            buffer = io.BytesIO()
+            pickle.dump(best_model, buffer)
+            buffer.seek(0)
+            col1,col2,col3 = st.columns(3)
+            with col2:
+                st.download_button(
+                label=f"Download {best_model_name} Model",
+                data=buffer,
+                file_name=f"{best_model_name}_model.pkl",
+                mime="application/octet-stream")
+            if st.button("⬅️ Back"):
+                next_page("nlp_home")
+                st.rerun()
+elif st.session_state["page"] == "unsupervised":
+        page_title("Unsupervised NLP (Clustering)", "🌀")
+        if "nlp_plots" in st.session_state and len(st.session_state["nlp_plots"]) > 0:
+            col1, col2 = st.columns(2)
+            with col1:
+                st.pyplot(st.session_state["nlp_plots"]["elbow"])
+            with col2:
+                st.pyplot(st.session_state["nlp_plots"]["silhouette"])
+            st.success(f"✅ Best k (Silhouette Score): **{st.session_state['best_k']}**")
+        col1,col2 = st.columns(2)
+        with col1:
+            new_pages("nlp_home","worldcloud")
+        with col2:
+            if st.button("➡️ Customize Graph"):
+                next_page("nlp_graph")
+                st.rerun()
+elif st.session_state["page"] == "nlp_graph":
+    page_title("NLP Cluster Visualization (PCA)", "🎨")
+    user_k = st.slider("🎛️ Choose number of clusters (k)", 2, 10, st.session_state["best_k"])
+    with st.spinner(f"Clustering with k={user_k}..."):
+        X = st.session_state["X"]
+        kmeans = KMeans(n_clusters=user_k, random_state=42, n_init=10)
+        labels = kmeans.fit_predict(X)
+        st.session_state["labels"] = labels
+        pca = PCA(n_components=2, random_state=42)
+        X_pca = pca.fit_transform(X.toarray())
+        centers_pca = pca.transform(kmeans.cluster_centers_)
+        fig, ax = plt.subplots(figsize=(8, 6))
+        scatter = ax.scatter(X_pca[:, 0], X_pca[:, 1], c=labels, cmap="viridis", alpha=0.7)
+        ax.scatter(centers_pca[:, 0], centers_pca[:, 1], marker="X", s=200, c="red", label="Cluster Centers")
+        ax.set_title(f"PCA Visualization of Clusters (k={user_k})")
+        ax.set_xlabel("PCA Component 1")
+        ax.set_ylabel("PCA Component 2")
+        legend1 = ax.legend(*scatter.legend_elements(), title="Clusters")
+        ax.add_artist(legend1)
+        st.pyplot(fig)
+        new_pages("unsupervised", "worldcloud")
+elif st.session_state["page"] == "worldcloud":
+    page_title("Cluster WordClouds", "☁️")
+    data = st.session_state["data"].copy()
+    text_col = st.session_state["text_col"]
+    labels = st.session_state["labels"]
+    cluster_counts = pd.Series(labels).value_counts().sort_index()
+    st.bar_chart(cluster_counts)
+    cluster_ids = sorted(cluster_counts.index.tolist())
+    for i in range(0, len(cluster_ids), 2):
+        cols = st.columns(2)
+        for j, col in enumerate(cols):
+            if i + j < len(cluster_ids):
+                cluster_id = cluster_ids[i + j]
+                with col:
+                    st.markdown(f"### Cluster {cluster_id}")
+                    cluster_texts = " ".join(data[text_col][np.array(labels) == cluster_id])
+                    wordcloud = WordCloud(width=800, height=400, background_color="white").generate(cluster_texts)
+                    fig, ax = plt.subplots(figsize=(6, 4))
+                    ax.imshow(wordcloud, interpolation="bilinear")
+                    ax.axis("off")
+                    st.pyplot(fig)
+    col1,col2 = st.columns(2)
+    if col1.button("⬅️ Back"):
+        next_page("nlp_graph")
+        st.rerun()
+    if col2.button("🔄 start Over"):
+        next_page("nlp_home")
+        st.session_state["data"] = None
+        st.rerun()
