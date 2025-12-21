@@ -31,7 +31,7 @@ An interactive web application built with **Streamlit** that allows users to:
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/your-username/automl-app.git
+git clone https://github.com/omkar3311/MLify.git
 cd automl-app
 pip install -r requirements.txt
 ```
