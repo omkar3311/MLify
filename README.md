@@ -134,5 +134,5 @@ Open your browser at http://localhost:8501
 
 ## 👨‍💻 **Author**
 
-   **Omkar**  
+   **Omkar Waghmare**  
 🎓 Aspiring Data Scientist.
