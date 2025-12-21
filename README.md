@@ -1,28 +1,79 @@
-# MLify
+# 🤖 **MLify**
 
-An interactive web application built with **Streamlit** that allows users to:
-- Upload datasets (`.csv` format)
-- Perform automated **EDA (Exploratory Data Analysis)** with visualizations
-- Train **classification or regression models** automatically
-- Compare model performance
-- Download the best trained model as a `.pkl` file
+✨ **MLify** is an interactive **machine learning & NLP web application** built using **Streamlit** that enables users to perform **end-to-end data science workflows** — from raw CSV data to trained models — without writing code.
+
+🚀 **Live App:** https://mlifyy.streamlit.app/
 
 ---
 
-## 🚀 Features
+## 🚀 **What MLify Can Do**
 
-- 📂 **Upload CSV**: Load your dataset directly from the UI.  
-- 🔍 **EDA + Summary**: View dataset shape, summary statistics, and duplicates.  
-- 📊 **Visualizations**: Automatic generation of categorical and numerical plots, along with a heatmap.  
-- 🤖 **Model Training**:  
-  - **Classification** → RandomForest & LogisticRegression  
-  - **Regression** → LinearRegression  
-- 📥 **Export Best Model**: Download the trained model as a pickle file.  
-- ⏳ **Loading Spinners**: Displays progress indicators for professional UX.  
-- ⬅️➡️ **Navigation**: Move forward and backward across app pages.
+- 📂 Upload datasets in `.csv` format  
+- 🔍 Perform automated **Exploratory Data Analysis (EDA)**  
+- 📊 Generate **categorical, numerical & correlation visualizations**  
+- 📈 Create **advanced custom plots** (scatter, bar, line, box, etc.)  
+- 🛠️ Apply automatic **feature engineering**  
+- 🎯 Detect task type (**classification or regression**)  
+- 🤖 Train and compare multiple ML models  
+- 🎛️ Perform **hyperparameter tuning** interactively  
+- 📥 Download trained models as `.pkl` files  
+- 🧠 Run **NLP pipelines** (supervised & unsupervised)  
+- 🌀 Perform text clustering with **KMeans**  
+- 🎨 Visualize clusters using **PCA**  
+- ☁️ Generate **cluster-based WordClouds**  
 
 ---
 
+## 🤖 **Models Supported**
+
+### 🧩 Classification
+- 🌲 Random Forest  
+- 📐 Logistic Regression  
+- 🔀 Support Vector Machine (SVC)  
+
+### 📈 Regression
+- 📉 Linear Regression  
+- 🚀 Gradient Boosting Regressor  
+
+### 🧠 NLP (Supervised)
+- 📐 Logistic Regression  
+- 📊 Naive Bayes  
+- ⚡ Linear SVM  
+
+### 🌀 NLP (Unsupervised)
+- 🔎 TF-IDF + KMeans Clustering  
+
+---
+
+## 📊 **Evaluation Metrics**
+
+- ✅ Classification → Accuracy  
+- 📏 Regression → R² Score  
+- 🧭 NLP Clustering → Silhouette Score  
+
+---
+
+## 🧠 **NLP Capabilities**
+
+- 🧹 Text cleaning & preprocessing  
+- 🔤 TF-IDF vectorization  
+- 📘 Supervised text classification  
+- 🌀 Unsupervised text clustering  
+- 📉 Elbow method & silhouette analysis  
+- 🎨 PCA-based cluster visualization  
+- ☁️ Cluster-wise WordCloud generation  
+
+---
+
+## 🖥️ **Tech Stack**
+
+- 🐍 Python  
+- 🎈 Streamlit  
+- 🧮 Pandas & NumPy  
+- 📊 Matplotlib & Seaborn  
+- 🤖 Scikit-learn  
+- ☁️ WordCloud
+---
 ![Demo ScreenShot](mlify.png)
 
 ---
@@ -41,3 +92,8 @@ Run the Streamlit app:
 streamlit run app.py
 ```
 Open your browser at http://localhost:8501
+
+## 👨‍💻 **Author**
+
+   **Omkar**  
+🎓 Aspiring Data Scientist.
