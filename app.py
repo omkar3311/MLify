@@ -199,6 +199,25 @@ def clean_text(text):
         text = re.sub(r'[^a-z\s]', ' ', text)
         text = re.sub(r'\s+', ' ', text).strip()
         return text
+    
+def clouds(data,text_col,cluster_ids):
+    plots = {}
+    for i in range(0, len(cluster_ids), 2):
+        cols = st.columns(2)
+        for j, col in enumerate(cols):
+            if i + j < len(cluster_ids):
+                cluster_id = cluster_ids[i + j]
+                with col:
+                    st.markdown(f"### Cluster {cluster_id}")
+                    cluster_texts = " ".join(data[text_col][np.array(labels) == cluster_id])
+                    wordcloud = WordCloud(width=800, height=400, background_color="white").generate(cluster_texts)
+                    fig, ax = plt.subplots(figsize=(6, 4))
+                    ax.imshow(wordcloud, interpolation="bilinear")
+                    ax.axis("off")
+                    st.pyplot(fig)
+                    plots[i] = fig
+    return plots
+    
 if st.session_state["page"] == "home":
     st.markdown(
         """
@@ -461,6 +480,8 @@ elif st.session_state["page"] == "adv_visualization":
     col3,col4 = st.columns(2)
     with col4:
         if st.button("Generate Plot"):
+            if selected_plot == 'histplot':
+                y = None
             adv_plot(selected_plot,data,x,y,hue)
     if len(st.session_state["plots"]) > 1:
         st.subheader("📜 Previous Plots")
@@ -506,7 +527,7 @@ elif st.session_state["page"] == "engg_feature":
                             background-color: transparent;
                             text-align: center;
                             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                            width: 500px;
+                            width: 400px;
                             margin-left : 60px;
                             color: #333;
                             margin-right : 10px;
@@ -527,7 +548,7 @@ elif st.session_state["page"] == "engg_feature":
                             background-color: transparent;
                             text-align: center;
                             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                            width: 500px;
+                            width: 400px;
                             color: #333;
                             margin-left : 10px;
                         ">
@@ -832,27 +853,32 @@ elif st.session_state["page"] == "nlp_graph":
         ax.add_artist(legend1)
         st.pyplot(fig)
         new_pages("unsupervised", "worldcloud")
+                    
 elif st.session_state["page"] == "worldcloud":
     page_title("Cluster WordClouds", "☁️")
     data = st.session_state["data"].copy()
     text_col = st.session_state["text_col"]
-    labels = st.session_state["labels"]
+    X = st.session_state["X"]
+    kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+    labels = kmeans.fit_predict(X)
+    # labels = st.session_state["labels"]
     cluster_counts = pd.Series(labels).value_counts().sort_index()
     st.bar_chart(cluster_counts)
     cluster_ids = sorted(cluster_counts.index.tolist())
-    for i in range(0, len(cluster_ids), 2):
-        cols = st.columns(2)
-        for j, col in enumerate(cols):
-            if i + j < len(cluster_ids):
-                cluster_id = cluster_ids[i + j]
-                with col:
-                    st.markdown(f"### Cluster {cluster_id}")
-                    cluster_texts = " ".join(data[text_col][np.array(labels) == cluster_id])
-                    wordcloud = WordCloud(width=800, height=400, background_color="white").generate(cluster_texts)
-                    fig, ax = plt.subplots(figsize=(6, 4))
-                    ax.imshow(wordcloud, interpolation="bilinear")
-                    ax.axis("off")
-                    st.pyplot(fig)
+    clouds(data,text_col,cluster_ids)
+    # for i in range(0, len(cluster_ids), 2):
+    #     cols = st.columns(2)
+    #     for j, col in enumerate(cols):
+    #         if i + j < len(cluster_ids):
+    #             cluster_id = cluster_ids[i + j]
+    #             with col:
+    #                 st.markdown(f"### Cluster {cluster_id}")
+    #                 cluster_texts = " ".join(data[text_col][np.array(labels) == cluster_id])
+    #                 wordcloud = WordCloud(width=800, height=400, background_color="white").generate(cluster_texts)
+    #                 fig, ax = plt.subplots(figsize=(6, 4))
+    #                 ax.imshow(wordcloud, interpolation="bilinear")
+    #                 ax.axis("off")
+    #                 st.pyplot(fig)
     col1,col2 = st.columns(2)
     if col1.button("⬅️ Back"):
         next_page("nlp_graph")
