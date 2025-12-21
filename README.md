@@ -6,6 +6,9 @@
 
 ---
 
+![Demo ScreenShot](mlify.png)
+
+---
 ## 🚀 **What MLify Can Do**
 
 - 📂 Upload datasets in `.csv` format  
@@ -53,15 +56,54 @@
 
 ---
 
-## 🧠 **NLP Capabilities**
+## 🎛️ **Hyperparameter Tuning**
 
-- 🧹 Text cleaning & preprocessing  
-- 🔤 TF-IDF vectorization  
-- 📘 Supervised text classification  
-- 🌀 Unsupervised text clustering  
-- 📉 Elbow method & silhouette analysis  
-- 🎨 PCA-based cluster visualization  
-- ☁️ Cluster-wise WordCloud generation  
+### Classification
+- Logistic Regression (C, max_iter)  
+- Random Forest (n_estimators, max_depth)  
+- SVM (C, kernel)  
+
+### Regression
+- Linear Regression  
+- Gradient Boosting (n_estimators, learning_rate)  
+
+**Includes:**
+- Custom train–test split  
+- Performance tracking  
+- Model history  
+- Download tuned models  
+
+---
+
+## 🧠 **NLP Module**
+
+### 📘 Supervised NLP (Text Classification)
+- TF-IDF vectorization  
+- Logistic Regression  
+- Naive Bayes  
+- Linear SVM  
+- Accuracy comparison  
+- Best model export  
+
+---
+
+### 🌀 Unsupervised NLP (Clustering)
+- TF-IDF + KMeans  
+- Elbow method  
+- Silhouette score  
+- Automatic best-k selection  
+
+---
+
+### 🎨 NLP Visualization
+- PCA-based 2D cluster plots  
+- Cluster center visualization  
+
+---
+
+### ☁️ WordClouds
+- Cluster-wise WordCloud generation  
+- Frequency distribution charts  
 
 ---
 
@@ -73,10 +115,7 @@
 - 📊 Matplotlib & Seaborn  
 - 🤖 Scikit-learn  
 - ☁️ WordCloud
----
-![Demo ScreenShot](mlify.png)
 
----
 ## 📦 Installation
 
 Clone the repository and install dependencies:
