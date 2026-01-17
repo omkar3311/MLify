@@ -18,7 +18,7 @@ import io
 import re
 from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
 import numpy as np
-from services import generate_plots, adv_plot, unsupervised_graph, model_training
+from services import generate_plots, adv_plot, unsupervised_graph, model_training, clouds
 
 st.set_page_config(page_title="MLify",page_icon="🤖",layout="wide")
 
@@ -54,11 +54,8 @@ if "data" not in st.session_state:
 def next_page(p):
     st.session_state["page"] = p
 
-
 if "adv_plot" not in st.session_state:
     st.session_state["adv_plot"] = {}
-
-
 
 def page_title(title,emoji=""):
     st.markdown(f"""
@@ -70,6 +67,7 @@ def page_title(title,emoji=""):
                 <h1>{emoji} {title}</h1>
                 </div>
             """,unsafe_allow_html=True )
+    
 def new_pages(back,next):
     col1,col2 = st.columns(2)
     if col1.button("⬅️ Back"):
@@ -78,6 +76,7 @@ def new_pages(back,next):
     if col2.button("➡️ Next"):
         next_page(next)
         st.rerun()
+        
 def clean_text(text):
         text = str(text).lower()
         text = re.sub(r'\[.*?\]', '', text)
@@ -86,24 +85,6 @@ def clean_text(text):
         text = re.sub(r'[^a-z\s]', ' ', text)
         text = re.sub(r'\s+', ' ', text).strip()
         return text
-    
-def clouds(data,text_col,cluster_ids):
-    plots = {}
-    for i in range(0, len(cluster_ids), 2):
-        cols = st.columns(2)
-        for j, col in enumerate(cols):
-            if i + j < len(cluster_ids):
-                cluster_id = cluster_ids[i + j]
-                with col:
-                    st.markdown(f"### Cluster {cluster_id}")
-                    cluster_texts = " ".join(data[text_col][np.array(labels) == cluster_id])
-                    wordcloud = WordCloud(width=800, height=400, background_color="white").generate(cluster_texts)
-                    fig, ax = plt.subplots(figsize=(6, 4))
-                    ax.imshow(wordcloud, interpolation="bilinear")
-                    ax.axis("off")
-                    st.pyplot(fig)
-                    plots[i] = fig
-    return plots
     
 if st.session_state["page"] == "home":
     st.markdown(
@@ -752,7 +733,7 @@ elif st.session_state["page"] == "worldcloud":
     cluster_counts = pd.Series(labels).value_counts().sort_index()
     st.bar_chart(cluster_counts)
     cluster_ids = sorted(cluster_counts.index.tolist())
-    clouds(data,text_col,cluster_ids)
+    clouds(data,text_col,cluster_ids,labels)
     # for i in range(0, len(cluster_ids), 2):
     #     cols = st.columns(2)
     #     for j, col in enumerate(cols):
