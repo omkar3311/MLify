@@ -41,6 +41,7 @@ def category_notebook():
     category = st.session_state["data_cleaned"].select_dtypes(include="object").columns
 
     for col in category:
+        st.session_state["cells"].append( new_markdown_cell("### {col}"))
         st.session_state["cells"].append(
             new_code_cell(
                 f"""
@@ -70,6 +71,7 @@ plt.show()
     numerical = st.session_state["data_cleaned"].select_dtypes(include=["int64", "float64"]).columns
 
     for col in numerical:
+        st.session_state["cells"].append( new_markdown_cell("### {col}"))
         st.session_state["cells"].append(
             new_code_cell(
                 f"""
@@ -207,7 +209,7 @@ def model_training(model, x, y, task="classification"):
     return score
 
 def add_adv_model_to_notebook(test_size,model,model_choice,metric_name):
-    st.session_state["cells"].append(new_markdown_cell(f"##{model_choice}"))
+    st.session_state["cells"].append(new_markdown_cell(f"## {model_choice}"))
     metric_code = (
         "accuracy_score(y_test, y_pred)"
         if metric_name == "Accuracy"
