@@ -18,7 +18,7 @@ import io
 import re
 from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
 import numpy as np
-from services import generate_plots
+from services import generate_plots, adv_plot
 
 st.set_page_config(page_title="MLify",page_icon="🤖",layout="wide")
 
@@ -57,21 +57,7 @@ def next_page(p):
 
 if "adv_plot" not in st.session_state:
     st.session_state["adv_plot"] = {}
-def adv_plot(selected_plot, data, x, y=None, hue=None):
-    fig, ax = plt.subplots(figsize=(8, 6))
-    if selected_plot == "scatterplot":
-        sns.scatterplot(data=data, x=x, y=y, hue=hue, ax=ax)
-    elif selected_plot == "lineplot":
-        sns.lineplot(data=data, x=x, y=y, hue=hue, ax=ax)
-    elif selected_plot == "histplot":
-        sns.histplot(data=data, x=x, hue=hue, ax=ax, kde=True)
-    elif selected_plot == "barplot":
-        sns.barplot(data=data, x=x, y=y, hue=hue, ax=ax)
-    elif selected_plot == "boxplot":
-        sns.boxplot(data=data, x=x, y=y, hue=hue, ax=ax)
-    st.pyplot(fig)
-    plot_key = f"{selected_plot}_{x}_{y if y else 'None'}"
-    st.session_state["adv_plot"][plot_key] = fig
+
 def unsupervised_graph():
     if "nlp_plots" not in st.session_state:
         st.session_state["nlp_plots"] = {}
