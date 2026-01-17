@@ -477,9 +477,32 @@ elif st.session_state["page"] == "training":
     label = LabelEncoder()
     for col in category:
         data[col] = label.fit_transform(data[col])
-        
+    
+    st.session_state["cells"].append( new_markdown_cell("## Encode Categorical Features"))
+    st.session_state["cells"].append( new_code_cell(
+            f"""
+        df_encoded = df.copy()
+
+        label = LabelEncoder()
+        categorical_cols = {category}
+
+        for col in categorical_cols:
+            df_encoded[col] = label.fit_transform(df_encoded[col])
+
+        df_encoded.head()
+        """.strip() ))
     x = data.drop(columns=[target])
     y = data[target]
+    
+    st.session_state["cells"].append( new_markdown_cell("## Feature and Target Selection"))
+
+    st.session_state["cells"].append( new_code_cell(
+            f"""
+        X = df_encoded.drop(columns=["{target}"])
+        y = df_encoded["{target}"]
+
+        X.shape, y.shape
+        """.strip() ))
     
     if y.dtype == "object" or len(y.unique()) < 20:
         task = "classification"
