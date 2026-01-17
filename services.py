@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
+from wordcloud import WordCloud
 from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
 
 def generate_plots(data):
@@ -125,3 +126,21 @@ def model_training(model, x, y, task="classification"):
                 st.progress(r2)
             score = r2
     return score
+
+def clouds(data,text_col,cluster_ids,labels):
+    plots = {}
+    for i in range(0, len(cluster_ids), 2):
+        cols = st.columns(2)
+        for j, col in enumerate(cols):
+            if i + j < len(cluster_ids):
+                cluster_id = cluster_ids[i + j]
+                with col:
+                    st.markdown(f"### Cluster {cluster_id}")
+                    cluster_texts = " ".join(data[text_col][np.array(labels) == cluster_id])
+                    wordcloud = WordCloud(width=800, height=400, background_color="white").generate(cluster_texts)
+                    fig, ax = plt.subplots(figsize=(6, 4))
+                    ax.imshow(wordcloud, interpolation="bilinear")
+                    ax.axis("off")
+                    st.pyplot(fig)
+                    plots[i] = fig
+    return plots
