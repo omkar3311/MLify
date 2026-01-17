@@ -1,3 +1,4 @@
+import streamlit as st
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -27,3 +28,19 @@ def generate_plots(data):
         sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax)
         plots["__heatmap__"] = fig
     return plots
+
+def adv_plot(selected_plot, data, x, y=None, hue=None):
+    fig, ax = plt.subplots(figsize=(8, 6))
+    if selected_plot == "scatterplot":
+        sns.scatterplot(data=data, x=x, y=y, hue=hue, ax=ax)
+    elif selected_plot == "lineplot":
+        sns.lineplot(data=data, x=x, y=y, hue=hue, ax=ax)
+    elif selected_plot == "histplot":
+        sns.histplot(data=data, x=x, hue=hue, ax=ax, kde=True)
+    elif selected_plot == "barplot":
+        sns.barplot(data=data, x=x, y=y, hue=hue, ax=ax)
+    elif selected_plot == "boxplot":
+        sns.boxplot(data=data, x=x, y=y, hue=hue, ax=ax)
+    st.pyplot(fig)
+    plot_key = f"{selected_plot}_{x}_{y if y else 'None'}"
+    st.session_state["adv_plot"][plot_key] = fig
