@@ -6,6 +6,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 from wordcloud import WordCloud
 from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
+import nbformat 
+from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 
 def generate_plots(data):
     plots = {}
@@ -32,7 +34,70 @@ def generate_plots(data):
         fig, ax = plt.subplots(figsize=(10,6))
         sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax)
         plots["__heatmap__"] = fig
+        
     return plots
+
+def category_notebook():
+    category = st.session_state["data_cleaned"].select_dtypes(include="object").columns
+
+    for col in category:
+        st.session_state["cells"].append(
+            new_code_cell(
+                f"""
+            fig, ax = plt.subplots(2, 1, figsize=(8, 15))
+
+            counts = df["{col}"].value_counts().head(20)
+
+            sns.countplot(
+                x=df["{col}"],
+                order=counts.index,
+                ax=ax[0]
+            )
+            ax[0].tick_params(axis='x', rotation=45)
+            ax[0].set_title("Countplot: {col}")
+
+            ax[1].pie(
+                counts,
+                labels=counts.index,
+                autopct='%1.1f%%'
+            )
+            ax[1].set_title("Pie Chart: {col}")
+
+            plt.tight_layout()
+            plt.show()
+            """ ))
+        
+    if len(numerical) > 1:
+        st.session_state["cells"].append(
+            new_code_cell(
+                f"""
+                corr = df[{list(numerical)}].corr()
+
+                plt.figure(figsize=(10, 6))
+                sns.heatmap(corr, annot=True, cmap="coolwarm")
+                plt.title("Correlation Heatmap")
+                plt.show()
+                """ ))
+
+
+    numerical = st.session_state["data_cleaned"].select_dtypes(include=["int64", "float64"]).columns
+
+    for col in numerical:
+        st.session_state["cells"].append(
+            new_code_cell(
+                f"""
+            fig, ax = plt.subplots(2, 1, figsize=(8, 15))
+
+            sns.histplot(df["{col}"], bins=10, kde=True, ax=ax[0])
+            ax[0].set_title("Histogram: {col}")
+
+            sns.boxplot(x=df["{col}"], ax=ax[1])
+            ax[1].set_title("Boxplot: {col}")
+
+            plt.tight_layout()
+            plt.show()
+            """ ))
+
 
 def adv_plot(selected_plot, data, x, y=None, hue=None):
     fig, ax = plt.subplots(figsize=(8, 6))
