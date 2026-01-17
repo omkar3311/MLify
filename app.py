@@ -18,7 +18,7 @@ import io
 import re
 from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
 import numpy as np
-from services import generate_plots, adv_plot, unsupervised_graph, model_training, clouds,category_notebook, add_adv_plot_to_notebook 
+from services import generate_plots, adv_plot, unsupervised_graph, model_training, clouds,category_notebook, add_adv_plot_to_notebook , add_adv_model_to_notebook
 import nbformat 
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 
@@ -707,6 +707,8 @@ elif st.session_state["page"] == "adv_training":
             score = mean_squared_error(y_test, y_pred)
             metric_name = "MSE"
         st.success(f"{model_choice} trained! {metric_name}: {score:.4f}")
+        if st.button("Add model in notebook"):
+            add_adv_model_to_notebook(test_size,model,model_choice,metric_name)
         pickle_file = f"{model_choice.replace(' ', '_').lower()}_model.pkl"
         with open(pickle_file, "wb") as f:
             pickle.dump(model, f)
