@@ -18,7 +18,7 @@ import io
 import re
 from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
 import numpy as np
-from services import generate_plots, adv_plot, unsupervised_graph, model_training, clouds,category_notebook, add_adv_plot_to_notebook , add_adv_model_to_notebook
+from services import generate_plots, adv_plot, unsupervised_graph, model_training, clouds,category_notebook, add_adv_plot_to_notebook , add_adv_model_to_notebook, generate_notebook_download
 import nbformat 
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 
@@ -63,7 +63,11 @@ if "adv_plot" not in st.session_state:
     
 if "cells" not in st.session_state:
     st.session_state["cells"] = []
-    
+
+for k in ["import-data","shape","null","vis","encod","train","x&y","RF","LR","svc","GB"]:
+    if k not in st.session_state:
+        st.session_state[k] = False  
+
 def page_title(title,emoji=""):
     st.markdown(f"""
             <div style = "
@@ -157,13 +161,16 @@ if st.session_state["page"] == "upload":
     if file is not None :
         with st.spinner("**Processing data...**"):
             st.session_state["data"] = pd.read_csv(file)
-            st.session_state["cells"].append( new_markdown_cell("##Importing Data"))
-            st.session_state["cells"].append( new_code_cell(
-                    f'df = pd.read_csv("{file.name}")\n'
-                    f'df.head()'))
             st.session_state["summary"] = st.session_state["data"].describe().loc[['std','mean','count','50%']]
-            st.session_state["cells"].append( new_markdown_cell("##Summary"))
-            st.session_state["cells"].append( new_code_cell(f'df.describe()'))
+            if not st.session_state["import-data"]:
+                st.session_state["cells"].append( new_markdown_cell("## Importing Data"))
+                st.session_state["cells"].append( new_code_cell(
+                        'import pandas as pd\n'
+                        f'df = pd.read_csv("{file.name}")\n'
+                        f'df.head()'))
+                st.session_state["cells"].append( new_markdown_cell("## Summary"))
+                st.session_state["cells"].append( new_code_cell(f'df.describe()'))
+                st.session_state["import-data"] = True
         with st.spinner("**Generating plots...**"):
             st.session_state["data_cleaned"] = st.session_state["data"].drop_duplicates()
             st.session_state["plots"] = generate_plots(st.session_state["data_cleaned"])
@@ -224,8 +231,10 @@ elif st.session_state["page"] == "EDA_Summary":
                     <h2 style="margin: 0; color: #333;">{data.shape[1]}</h2>
                     </div>
                     """,unsafe_allow_html=True)
-        st.session_state["cells"].append( new_markdown_cell("##Shape"))
-        st.session_state["cells"].append( new_code_cell(f'df.shape'))
+        if not st.session_state["shape"]:
+            st.session_state["cells"].append( new_markdown_cell("## Shape"))
+            st.session_state["cells"].append( new_code_cell(f'df.shape'))
+            st.session_state["shape"] = True
     with col2:
         data_cleaned = data.drop_duplicates()
         shape = data_cleaned.shape
@@ -275,8 +284,11 @@ elif st.session_state["page"] == "EDA_Summary":
                     </div>
                     """,
                     unsafe_allow_html=True )
-    st.session_state["cells"].append( new_markdown_cell("##Null Values"))
-    st.session_state["cells"].append( new_code_cell(f'df.isna().sum()'))
+    if not st.session_state["null"]:
+        st.session_state["cells"].append( new_markdown_cell("## Null Values"))
+        st.session_state["cells"].append( new_code_cell(f'df.isna().sum()'))
+        st.session_state["null"] = True
+    
     new_pages("upload","visualizations")
 
 elif st.session_state["page"] == "visualizations":
@@ -345,9 +357,13 @@ elif st.session_state["page"] == "visualizations":
         next_page("adv_visualization")
         st.rerun()
 
-    st.session_state["cells"].append( new_markdown_cell("## Visualization"))
-    category_notebook()
-
+    if not st.session_state["vis"]:
+        st.session_state["cells"].append( new_markdown_cell("## Visualization"))
+        st.session_state["cells"].append( new_code_cell("""
+import matplotlib.pyplot as plt\n
+import seaborn as sns """))
+        category_notebook()
+        st.session_state["vis"] = True
     # new_pages("EDA_Summary","engg_feature")
     
 elif st.session_state["page"] == "adv_visualization":
@@ -380,8 +396,8 @@ elif st.session_state["page"] == "adv_visualization":
             adv_plot(selected_plot,data,x,y,hue)
             if st.button("Add Plot to Notebook"):
                 add_adv_plot_to_notebook(selected_plot, x, y, hue)
+                st.success("Added Successfully")
 
-            
     if len(st.session_state["plots"]) > 1:
         st.subheader("📜 Previous Plots")
         plots_list = list(st.session_state["adv_plot"].items())
@@ -477,42 +493,43 @@ elif st.session_state["page"] == "training":
     label = LabelEncoder()
     for col in category:
         data[col] = label.fit_transform(data[col])
-    
-    st.session_state["cells"].append( new_markdown_cell("## Encode Categorical Features"))
-    st.session_state["cells"].append( new_code_cell(
+    if not st.session_state["encod"]:
+        st.session_state["cells"].append( new_markdown_cell("## Encode Categorical Features"))
+        st.session_state["cells"].append( new_code_cell(
             f"""
-        df_encoded = df.copy()
+from sklearn.preprocessing import LabelEncoder
+df_encoded = df.copy()
 
-        label = LabelEncoder()
-        categorical_cols = {category}
+label = LabelEncoder()
+categorical_cols = {category}
 
-        for col in categorical_cols:
-            df_encoded[col] = label.fit_transform(df_encoded[col])
+for col in categorical_cols:
+    df_encoded[col] = label.fit_transform(df_encoded[col])
 
-        df_encoded.head()
+df_encoded.head()
         """.strip() ))
+        st.session_state["encod"] = True
     x = data.drop(columns=[target])
     y = data[target]
-    
-    st.session_state["cells"].append( new_markdown_cell("## Feature and Target Selection"))
-
-    st.session_state["cells"].append( new_code_cell(
+    if not st.session_state["x&y"]:
+        st.session_state["cells"].append( new_markdown_cell("## Feature and Target Selection"))
+        st.session_state["cells"].append( new_code_cell(
             f"""
-        X = df_encoded.drop(columns=["{target}"])
-        y = df_encoded["{target}"]
+X = df_encoded.drop(columns=["{target}"])
+y = df_encoded["{target}"]
 
-        X.shape, y.shape
+X.shape, y.shape
         """.strip() ))
     
-    st.session_state["cells"].append( new_markdown_cell("## Train Test Split"))
-
-    st.session_state["cells"].append( new_code_cell(
+        st.session_state["cells"].append( new_markdown_cell("## Train Test Split"))
+        st.session_state["cells"].append( new_code_cell(
             """
-    X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=42 )
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=42 )
 
-    X_train.shape, X_test.shape
+X_train.shape, X_test.shape
     """.strip() ))
-
+        st.session_state["x&y"] = True
     if y.dtype == "object" or len(y.unique()) < 20:
         task = "classification"
     else:
@@ -520,41 +537,49 @@ elif st.session_state["page"] == "training":
         
     if task == "classification":
         RF = model_training(RandomForestClassifier(n_estimators=5), x, y, task="classification")
-        st.session_state["cells"].append( new_markdown_cell("## Random Forest Classifier"))
-        st.session_state["cells"].append( new_code_cell(
+        if not st.session_state["RF"]:
+            st.session_state["cells"].append( new_markdown_cell("## Random Forest Classifier"))
+            st.session_state["cells"].append( new_code_cell(
                 """
-        rf = RandomForestClassifier(n_estimators=5, random_state=42)
-        rf.fit(X_train, y_train)
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+rf = RandomForestClassifier(n_estimators=5, random_state=42)
+rf.fit(X_train, y_train)
 
-        y_pred = rf.predict(X_test)
-        accuracy_score(y_test, y_pred)
+y_pred = rf.predict(X_test)
+accuracy_score(y_test, y_pred)
         """.strip() ))
+            st.session_state["RF"] = True
 
         LR = model_training(LogisticRegression(max_iter=1000), x, y, task="classification")
-        st.session_state["cells"].append( new_markdown_cell("## Logistic Regression") )
-
-        st.session_state["cells"].append(
+        if not st.session_state["LR"]:
+            st.session_state["cells"].append( new_markdown_cell("## Logistic Regression") )
+            st.session_state["cells"].append(
             new_code_cell(
                 """
-        lr = LogisticRegression(max_iter=1000)
-        lr.fit(X_train, y_train)
+from sklearn.linear_model import LogisticRegression
+lr = LogisticRegression(max_iter=1000)
+lr.fit(X_train, y_train)
 
-        y_pred = lr.predict(X_test)
-        accuracy_score(y_test, y_pred)
+y_pred = lr.predict(X_test)
+accuracy_score(y_test, y_pred)
         """.strip() ))
+            st.session_state["LR"] = True
 
         SV = model_training(SVC(C = 1,kernel='rbf'), x, y, task="classification")
-        st.session_state["cells"].append( new_markdown_cell("## Support Vector Classifier"))
-
-        st.session_state["cells"].append(
+        if not st.session_state["svc"] :
+            st.session_state["cells"].append( new_markdown_cell("## Support Vector Classifier"))
+            st.session_state["cells"].append(
             new_code_cell(
                 """
-        svc = SVC(C=1, kernel="rbf")
-        svc.fit(X_train, y_train)
+from sklearn.svm import SVC
+svc = SVC(C=1, kernel="rbf")
+svc.fit(X_train, y_train)
 
-        y_pred = svc.predict(X_test)
-        accuracy_score(y_test, y_pred)
+y_pred = svc.predict(X_test)
+accuracy_score(y_test, y_pred)
         """.strip() ))
+            st.session_state["svc"] = True
 
         if RF > LR and RF > SV:
             best_model, best_model_name = RandomForestClassifier(n_estimators=5), "RandomForestClassifier"
@@ -564,34 +589,38 @@ elif st.session_state["page"] == "training":
             best_model, best_model_name = SVC(C = 1,kernel='rbf'), "SVC"
     else:
         LR = model_training(LinearRegression(), x, y, task="regression")
-        st.session_state["cells"].append( new_markdown_cell("## Linear Regression"))
-
-        st.session_state["cells"].append(
+        if not st.session_state["LR"]:
+            st.session_state["cells"].append( new_markdown_cell("## Linear Regression"))
+            st.session_state["cells"].append(
             new_code_cell(
                 """
-        lr = LinearRegression()
-        lr.fit(X_train, y_train)
+from sklearn.linear_model import LinearRegression
+lr = LinearRegression()
+lr.fit(X_train, y_train)
 
-        y_pred = lr.predict(X_test)
-        r2_score(y_test, y_pred)
+y_pred = lr.predict(X_test)
+r2_score(y_test, y_pred)
         """.strip() ))
+            st.session_state["LR"] = True
 
         GB = model_training(GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), x, y, task="regression")
-        st.session_state["cells"].append( new_markdown_cell("## Gradient Boosting Regressor") )
-
-        st.session_state["cells"].append( new_code_cell(
+        if not st.session_state["GB"]:
+            st.session_state["cells"].append( new_markdown_cell("## Gradient Boosting Regressor") )
+            st.session_state["cells"].append( new_code_cell(
                 """
-        gb = GradientBoostingRegressor(
-            n_estimators=200,
-            learning_rate=0.05,
-            max_depth=3,
-            random_state=42
-        )
-        gb.fit(X_train, y_train)
+from sklearn.ensemble import GradientBoostingRegressor
+gb = GradientBoostingRegressor(
+    n_estimators=200,
+    learning_rate=0.05,
+    max_depth=3,
+    random_state=42
+)
+gb.fit(X_train, y_train)
 
-        y_pred = gb.predict(X_test)
-        r2_score(y_test, y_pred)
+y_pred = gb.predict(X_test)
+r2_score(y_test, y_pred)
         """.strip()))
+            st.session_state["GB"] = True
 
         if LR > GB :
             best_model, best_model_name = LinearRegression(), "LinearRegression"
@@ -626,7 +655,7 @@ elif st.session_state["page"] == "training":
         data=buffer,
         file_name=f"{best_model_name}_model.pkl",
         mime="application/octet-stream")
-    col1,col2,col3 = st.columns(3)
+    col1,col2,col3,col4 = st.columns(4)
     if col1.button("⬅️ Back"):
         next_page("engg_feature")
         st.rerun()
@@ -637,6 +666,14 @@ elif st.session_state["page"] == "training":
     if col3.button("🎛️ Hyperparameter tunning"):
         next_page("adv_training")
         st.rerun()
+    nb_bytes = generate_notebook_download()
+    if nb_bytes:
+        col4.download_button(
+            label="Download Notebook",
+            data=nb_bytes,
+            file_name="model_notebook.ipynb",
+            mime="application/x-ipynb+json"
+        )
         
 if "models" not in st.session_state:
     st.session_state.models = []
@@ -738,7 +775,7 @@ elif st.session_state["page"] == "adv_training":
                         file_name=entry["file"],
                         key=f"download_{i}")
                     
-    col3,col4 = st.columns(2)
+    col3,col4,col5 = st.columns(3)
     if col3.button("⬅️ Back"):
         next_page("training")
         st.rerun()
@@ -746,6 +783,15 @@ elif st.session_state["page"] == "adv_training":
         next_page("upload")
         st.session_state["data"] = None
         st.rerun()
+        
+    nb_bytes = generate_notebook_download()
+    if nb_bytes:
+        col5.download_button(
+            label="Download Notebook",
+            data=nb_bytes,
+            file_name="model_notebook.ipynb",
+            mime="application/x-ipynb+json"
+        )
         
 elif st.session_state["page"] == "nlp_home":
     st.markdown(
