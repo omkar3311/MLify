@@ -1,6 +1,9 @@
 import streamlit as st
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
 
 def generate_plots(data):
     plots = {}
@@ -44,3 +47,34 @@ def adv_plot(selected_plot, data, x, y=None, hue=None):
     st.pyplot(fig)
     plot_key = f"{selected_plot}_{x}_{y if y else 'None'}"
     st.session_state["adv_plot"][plot_key] = fig
+    
+def unsupervised_graph():
+    if "nlp_plots" not in st.session_state:
+        st.session_state["nlp_plots"] = {}
+    X = st.session_state["X"]
+    k_values = range(2, 11)
+    wcss, sil = [], []
+    progress = st.progress(0)
+    for idx, k in enumerate(k_values):
+        kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+        labels = kmeans.fit_predict(X)
+        wcss.append(kmeans.inertia_)
+        sil.append(silhouette_score(X, labels))
+        progress.progress((idx + 1) / len(k_values))
+    progress.empty()
+    fig_elbow, ax1 = plt.subplots(figsize=(6, 5))
+    ax1.plot(k_values, wcss, marker='o')
+    ax1.set_title("📉 Elbow Method for Optimal k")
+    ax1.set_xlabel("Number of Clusters (k)")
+    ax1.set_ylabel("WCSS")
+    fig_sil, ax2 = plt.subplots(figsize=(6, 5))
+    ax2.plot(k_values, sil, marker='x', color='orange')
+    ax2.set_title("📈 Silhouette Score vs k")
+    ax2.set_xlabel("Number of Clusters (k)")
+    ax2.set_ylabel("Silhouette Score")
+    st.session_state["nlp_plots"]["elbow"] = fig_elbow
+    st.session_state["nlp_plots"]["silhouette"] = fig_sil
+    best_k = k_values[np.argmax(sil)]
+    st.session_state["best_k"] = best_k
+    st.session_state["sil_scores"] = sil
+    st.success(f"✅ Best k (Silhouette Score): **{best_k}** (Score = {max(sil):.4f})")
