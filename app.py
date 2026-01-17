@@ -504,6 +504,15 @@ elif st.session_state["page"] == "training":
         X.shape, y.shape
         """.strip() ))
     
+    st.session_state["cells"].append( new_markdown_cell("## Train Test Split"))
+
+    st.session_state["cells"].append( new_code_cell(
+            """
+    X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=42 )
+
+    X_train.shape, X_test.shape
+    """.strip() ))
+
     if y.dtype == "object" or len(y.unique()) < 20:
         task = "classification"
     else:
@@ -511,8 +520,42 @@ elif st.session_state["page"] == "training":
         
     if task == "classification":
         RF = model_training(RandomForestClassifier(n_estimators=5), x, y, task="classification")
+        st.session_state["cells"].append( new_markdown_cell("## Random Forest Classifier"))
+        st.session_state["cells"].append( new_code_cell(
+                """
+        rf = RandomForestClassifier(n_estimators=5, random_state=42)
+        rf.fit(X_train, y_train)
+
+        y_pred = rf.predict(X_test)
+        accuracy_score(y_test, y_pred)
+        """.strip() ))
+
         LR = model_training(LogisticRegression(max_iter=1000), x, y, task="classification")
+        st.session_state["cells"].append( new_markdown_cell("## Logistic Regression") )
+
+        st.session_state["cells"].append(
+            new_code_cell(
+                """
+        lr = LogisticRegression(max_iter=1000)
+        lr.fit(X_train, y_train)
+
+        y_pred = lr.predict(X_test)
+        accuracy_score(y_test, y_pred)
+        """.strip() ))
+
         SV = model_training(SVC(C = 1,kernel='rbf'), x, y, task="classification")
+        st.session_state["cells"].append( new_markdown_cell("## Support Vector Classifier"))
+
+        st.session_state["cells"].append(
+            new_code_cell(
+                """
+        svc = SVC(C=1, kernel="rbf")
+        svc.fit(X_train, y_train)
+
+        y_pred = svc.predict(X_test)
+        accuracy_score(y_test, y_pred)
+        """.strip() ))
+
         if RF > LR and RF > SV:
             best_model, best_model_name = RandomForestClassifier(n_estimators=5), "RandomForestClassifier"
         elif LR > SV:
@@ -521,7 +564,35 @@ elif st.session_state["page"] == "training":
             best_model, best_model_name = SVC(C = 1,kernel='rbf'), "SVC"
     else:
         LR = model_training(LinearRegression(), x, y, task="regression")
+        st.session_state["cells"].append( new_markdown_cell("## Linear Regression"))
+
+        st.session_state["cells"].append(
+            new_code_cell(
+                """
+        lr = LinearRegression()
+        lr.fit(X_train, y_train)
+
+        y_pred = lr.predict(X_test)
+        r2_score(y_test, y_pred)
+        """.strip() ))
+
         GB = model_training(GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), x, y, task="regression")
+        st.session_state["cells"].append( new_markdown_cell("## Gradient Boosting Regressor") )
+
+        st.session_state["cells"].append( new_code_cell(
+                """
+        gb = GradientBoostingRegressor(
+            n_estimators=200,
+            learning_rate=0.05,
+            max_depth=3,
+            random_state=42
+        )
+        gb.fit(X_train, y_train)
+
+        y_pred = gb.predict(X_test)
+        r2_score(y_test, y_pred)
+        """.strip()))
+
         if LR > GB :
             best_model, best_model_name = LinearRegression(), "LinearRegression"
         else:
