@@ -126,6 +126,7 @@ plt.show()
         """
     st.session_state["cells"].append( new_markdown_cell( f"### {plot.title()} ({x}{', ' + y if y else ''})"))
     st.session_state["cells"].append( new_code_cell(plot_code.strip()))
+    st.success("Added Successfully")
 
 
 def unsupervised_graph():
@@ -218,6 +219,7 @@ model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 score = {metric_code}
 score   """  ))
+    st.success("Added Sucessfully")
     
 
 def clouds(data,text_col,cluster_ids,labels):
