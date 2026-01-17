@@ -71,6 +71,8 @@ for k in ["import-data","shape","null","vis","encod","train","x&y","RF","LR","sv
 if "last_adv_plot" not in st.session_state:
     st.session_state["last_adv_plot"] = None
 
+if "last_trained_model" not in st.session_state:
+    st.session_state["last_trained_model"] = None
 
 def page_title(title,emoji=""):
     st.markdown(f"""
@@ -759,8 +761,12 @@ elif st.session_state["page"] == "adv_training":
             score = mean_squared_error(y_test, y_pred)
             metric_name = "MSE"
         st.success(f"{model_choice} trained! {metric_name}: {score:.4f}")
-        if st.button("Add model in notebook"):
-            add_adv_model_to_notebook(test_size,model,model_choice,metric_name)
+        st.session_state["last_trained_model"] = {
+            "test_size": test_size,
+            "model": model,
+            "model_choice": model_choice,
+            "metric_name": metric_name }
+
         pickle_file = f"{model_choice.replace(' ', '_').lower()}_model.pkl"
         with open(pickle_file, "wb") as f:
             pickle.dump(model, f)
@@ -772,6 +778,15 @@ elif st.session_state["page"] == "adv_training":
             "file": pickle_file,
             "params": params
         })
+    if "last_trained_model" in st.session_state:
+        if st.button("Add model in notebook"):
+            info = st.session_state["last_trained_model"]
+            add_adv_model_to_notebook(
+                info["test_size"],
+                info["model"],
+                info["model_choice"],
+                info["metric_name"] )
+
     if st.session_state.models:
         st.write("## Trained Models History")
         cols = st.columns(2)
