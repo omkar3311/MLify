@@ -41,7 +41,7 @@ def category_notebook():
     category = st.session_state["data_cleaned"].select_dtypes(include="object").columns
 
     for col in category:
-        st.session_state["cells"].append( new_markdown_cell("### {col}"))
+        st.session_state["cells"].append( new_markdown_cell(f"### {col}"))
         st.session_state["cells"].append(
             new_code_cell(
                 f"""
@@ -71,7 +71,7 @@ plt.show()
     numerical = st.session_state["data_cleaned"].select_dtypes(include=["int64", "float64"]).columns
 
     for col in numerical:
-        st.session_state["cells"].append( new_markdown_cell("### {col}"))
+        st.session_state["cells"].append( new_markdown_cell(f"### {col}"))
         st.session_state["cells"].append(
             new_code_cell(
                 f"""
