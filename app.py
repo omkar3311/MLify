@@ -18,9 +18,9 @@ import io
 import re
 from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
 import numpy as np
-from services import generate_plots, adv_plot, unsupervised_graph, model_training, clouds
+from services import generate_plots, adv_plot, unsupervised_graph, model_training, clouds,category_notebook, add_adv_plot_to_notebook 
 import nbformat 
-from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell, category_notebook
+from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 
 st.set_page_config(page_title="MLify",page_icon="🤖",layout="wide")
 
@@ -117,7 +117,7 @@ if st.session_state["page"] == "home":
                         text-align: center;
                         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                     ">
-                    <h2 style="margin: 0; color: #333;"></h2>
+                    <h2 style="margin: 0; color: #333;">Prediction</h2>
                     </div>
                     """,unsafe_allow_html=True)
         if st.button("➡️ Get started"):
@@ -378,6 +378,9 @@ elif st.session_state["page"] == "adv_visualization":
             if selected_plot == 'histplot':
                 y = None
             adv_plot(selected_plot,data,x,y,hue)
+            if st.button("Add Plot to Notebook"):
+                add_adv_plot_to_notebook(selected_plot, x, y, hue)
+
             
     if len(st.session_state["plots"]) > 1:
         st.subheader("📜 Previous Plots")
