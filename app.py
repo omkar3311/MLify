@@ -110,7 +110,7 @@ if st.session_state["page"] == "home":
                         text-align: center;
                         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                     ">
-                    <h2 style="margin: 0; color: #333;">Classification</h2>
+                    <h2 style="margin: 0; color: #333;"></h2>
                     </div>
                     """,unsafe_allow_html=True)
         if st.button("➡️ Get started"):
