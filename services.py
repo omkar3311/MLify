@@ -44,27 +44,27 @@ def category_notebook():
         st.session_state["cells"].append(
             new_code_cell(
                 f"""
-            fig, ax = plt.subplots(2, 1, figsize=(8, 15))
+fig, ax = plt.subplots(2, 1, figsize=(8, 15))
 
-            counts = df["{col}"].value_counts().head(20)
+counts = df["{col}"].value_counts().head(20)
 
-            sns.countplot(
-                x=df["{col}"],
-                order=counts.index,
-                ax=ax[0]
-            )
-            ax[0].tick_params(axis='x', rotation=45)
-            ax[0].set_title("Countplot: {col}")
+sns.countplot(
+x=df["{col}"],
+order=counts.index,
+ax=ax[0]
+)
+ax[0].tick_params(axis='x', rotation=45)
+ax[0].set_title("Countplot: {col}")
 
-            ax[1].pie(
-                counts,
-                labels=counts.index,
-                autopct='%1.1f%%'
-            )
-            ax[1].set_title("Pie Chart: {col}")
+ax[1].pie(
+    counts,
+    labels=counts.index,
+    autopct='%1.1f%%'
+)
+ax[1].set_title("Pie Chart: {col}")
 
-            plt.tight_layout()
-            plt.show()
+plt.tight_layout()
+plt.show()
             """ ))
 
     numerical = st.session_state["data_cleaned"].select_dtypes(include=["int64", "float64"]).columns
@@ -73,27 +73,27 @@ def category_notebook():
         st.session_state["cells"].append(
             new_code_cell(
                 f"""
-            fig, ax = plt.subplots(2, 1, figsize=(8, 15))
+fig, ax = plt.subplots(2, 1, figsize=(8, 15))
 
-            sns.histplot(df["{col}"], bins=10, kde=True, ax=ax[0])
-            ax[0].set_title("Histogram: {col}")
+sns.histplot(df["{col}"], bins=10, kde=True, ax=ax[0])
+ax[0].set_title("Histogram: {col}")
 
-            sns.boxplot(x=df["{col}"], ax=ax[1])
-            ax[1].set_title("Boxplot: {col}")
+sns.boxplot(x=df["{col}"], ax=ax[1])
+ax[1].set_title("Boxplot: {col}")
 
-            plt.tight_layout()
-            plt.show()
+plt.tight_layout()
+plt.show()
             """ ))
     if len(numerical) > 1:
         st.session_state["cells"].append(
             new_code_cell(
                 f"""
-                corr = df[{list(numerical)}].corr()
+corr = df[{list(numerical)}].corr()
 
-                plt.figure(figsize=(10, 6))
-                sns.heatmap(corr, annot=True, cmap="coolwarm")
-                plt.title("Correlation Heatmap")
-                plt.show()
+plt.figure(figsize=(10, 6))
+sns.heatmap(corr, annot=True, cmap="coolwarm")
+plt.title("Correlation Heatmap")
+plt.show()
                 """ ))
 
 
@@ -118,11 +118,11 @@ def add_adv_plot_to_notebook(plot, x, y=None, hue=None):
     y_code = f', y="{y}"' if y else ""
 
     plot_code = f"""
-        plt.figure(figsize=(8, 6))
-        sns.{plot}(data=df, x="{x}"{y_code}{hue_code}{', kde=True' if plot == 'histplot' else ''})
-        plt.title("{plot.title()} - {x}")
-        plt.tight_layout()
-        plt.show()
+plt.figure(figsize=(8, 6))
+sns.{plot}(data=df, x="{x}"{y_code}{hue_code}{', kde=True' if plot == 'histplot' else ''})
+plt.title("{plot.title()} - {x}")
+plt.tight_layout()
+plt.show()
         """
     st.session_state["cells"].append( new_markdown_cell( f"### {plot.title()} ({x}{', ' + y if y else ''})"))
     st.session_state["cells"].append( new_code_cell(plot_code.strip()))
@@ -212,12 +212,12 @@ def add_adv_model_to_notebook(test_size,model,model_choice,metric_name):
         if metric_name == "Accuracy"
         else "mean_squared_error(y_test, y_pred)" )
     st.session_state["cells"].append(new_code_cell(f""" 
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size={test_size}, random_state=42)
-            model = {model}
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
-            score = {metric_code}
-            score   """  ))
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size={test_size}, random_state=42)
+model = {model}
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+score = {metric_code}
+score   """  ))
     
 
 def clouds(data,text_col,cluster_ids,labels):
@@ -238,3 +238,9 @@ def clouds(data,text_col,cluster_ids,labels):
                     plots[i] = fig
     return plots
 
+def generate_notebook_download():
+    if "cells" not in st.session_state or not st.session_state["cells"]:
+        return None
+
+    nb = new_notebook(cells=st.session_state["cells"])
+    return nbformat.writes(nb).encode("utf-8")
