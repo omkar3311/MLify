@@ -157,7 +157,13 @@ if st.session_state["page"] == "upload":
     if file is not None :
         with st.spinner("**Processing data...**"):
             st.session_state["data"] = pd.read_csv(file)
+            st.session_state["cells"].append( new_markdown_cell("##Importing Data"))
+            st.session_state["cells"].append( new_code_cell(
+                    f'df = pd.read_csv("{file.name}")\n'
+                    f'df.head()'))
             st.session_state["summary"] = st.session_state["data"].describe().loc[['std','mean','count','50%']]
+            st.session_state["cells"].append( new_markdown_cell("##Summary"))
+            st.session_state["cells"].append( new_code_cell(f'df.describe()'))
         with st.spinner("**Generating plots...**"):
             st.session_state["data_cleaned"] = st.session_state["data"].drop_duplicates()
             st.session_state["plots"] = generate_plots(st.session_state["data_cleaned"])
