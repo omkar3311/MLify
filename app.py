@@ -19,6 +19,8 @@ import re
 from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
 import numpy as np
 from services import generate_plots, adv_plot, unsupervised_graph, model_training, clouds
+import nbformat 
+from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 
 st.set_page_config(page_title="MLify",page_icon="🤖",layout="wide")
 
@@ -49,14 +51,19 @@ st.markdown(
 
 if "page" not in st.session_state:
     st.session_state["page"] = "home"
+    
 if "data" not in st.session_state:
-        st.session_state["data"] = None
+    st.session_state["data"] = None
+        
 def next_page(p):
     st.session_state["page"] = p
 
 if "adv_plot" not in st.session_state:
     st.session_state["adv_plot"] = {}
-
+    
+if "cells" not in st.session_state:
+    st.session_state["cells"] = []
+    
 def page_title(title,emoji=""):
     st.markdown(f"""
             <div style = "
