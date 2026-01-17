@@ -20,7 +20,7 @@ from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error,
 import numpy as np
 from services import generate_plots, adv_plot, unsupervised_graph, model_training, clouds
 import nbformat 
-from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
+from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell, category_notebook
 
 st.set_page_config(page_title="MLify",page_icon="🤖",layout="wide")
 
@@ -224,6 +224,8 @@ elif st.session_state["page"] == "EDA_Summary":
                     <h2 style="margin: 0; color: #333;">{data.shape[1]}</h2>
                     </div>
                     """,unsafe_allow_html=True)
+        st.session_state["cells"].append( new_markdown_cell("##Shape"))
+        st.session_state["cells"].append( new_code_cell(f'df.shape'))
     with col2:
         data_cleaned = data.drop_duplicates()
         shape = data_cleaned.shape
@@ -273,6 +275,8 @@ elif st.session_state["page"] == "EDA_Summary":
                     </div>
                     """,
                     unsafe_allow_html=True )
+    st.session_state["cells"].append( new_markdown_cell("##Null Values"))
+    st.session_state["cells"].append( new_code_cell(f'df.isna().sum()'))
     new_pages("upload","visualizations")
 
 elif st.session_state["page"] == "visualizations":
@@ -340,6 +344,10 @@ elif st.session_state["page"] == "visualizations":
     if col3.button("➡️ Advance Visualization"):
         next_page("adv_visualization")
         st.rerun()
+
+    st.session_state["cells"].append( new_markdown_cell("## Visualization"))
+    category_notebook()
+
     # new_pages("EDA_Summary","engg_feature")
     
 elif st.session_state["page"] == "adv_visualization":
