@@ -68,6 +68,10 @@ for k in ["import-data","shape","null","vis","encod","train","x&y","RF","LR","sv
     if k not in st.session_state:
         st.session_state[k] = False  
 
+if "last_adv_plot" not in st.session_state:
+    st.session_state["last_adv_plot"] = None
+
+
 def page_title(title,emoji=""):
     st.markdown(f"""
             <div style = "
@@ -394,9 +398,20 @@ elif st.session_state["page"] == "adv_visualization":
             if selected_plot == 'histplot':
                 y = None
             adv_plot(selected_plot,data,x,y,hue)
+            st.session_state["last_adv_plot"] = {
+            "plot": selected_plot,
+            "x": x,
+            "y": y,
+            "hue": hue }
+        if "last_adv_plot" in st.session_state and st.session_state["last_adv_plot"] is not None:
             if st.button("Add Plot to Notebook"):
-                add_adv_plot_to_notebook(selected_plot, x, y, hue)
-                st.success("Added Successfully")
+                plot_info = st.session_state["last_adv_plot"]
+                add_adv_plot_to_notebook(
+                    plot_info["plot"],
+                    plot_info["x"],
+                    plot_info["y"],
+                    plot_info["hue"] )
+                
 
     if len(st.session_state["plots"]) > 1:
         st.subheader("📜 Previous Plots")
@@ -420,7 +435,7 @@ elif st.session_state["page"] == "adv_visualization":
                         ">
                             <h4 style="margin: 0; color: #333;">{plot_name}</h4>
                         </div>
-                        """,
+                        """,    
                         unsafe_allow_html=True
                     )
                     st.pyplot(fig)
