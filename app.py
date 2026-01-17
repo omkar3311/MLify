@@ -134,6 +134,7 @@ if st.session_state["page"] == "home":
          if st.button("➡️ Get started",key = "nlp"):
             next_page("nlp_home")
             st.rerun()
+            
 if st.session_state["page"] == "upload":
     st.markdown(
         """
@@ -313,6 +314,7 @@ elif st.session_state["page"] == "visualizations":
                     unsafe_allow_html=True
                 )
                 st.pyplot(st.session_state["plots"][col_name])
+                
     st.write("### Correlation Heatmap")
     st.pyplot(st.session_state["plots"]["__heatmap__"])
     col1,col2,col3 = st.columns(3)
@@ -326,17 +328,20 @@ elif st.session_state["page"] == "visualizations":
         next_page("adv_visualization")
         st.rerun()
     # new_pages("EDA_Summary","engg_feature")
+    
 elif st.session_state["page"] == "adv_visualization":
     page_title("Advanced Plots", "📊")
     data = st.session_state["data"].copy()
     seaborn = ["scatterplot","lineplot","histplot","barplot","boxplot",]
     col1, col2 = st.columns(2)
+    
     with col1:
         st.markdown("<h4 style='margin-bottom:0.2rem; color:#333;'>Choose Plot Type</h4>", unsafe_allow_html=True)
         selected_plot = st.selectbox(" ", seaborn, label_visibility="collapsed")
 
         st.markdown("<h4 style='margin-bottom:0.2rem; color:#333;'>Choose Hue</h4>", unsafe_allow_html=True)
         hue = st.selectbox(" ", [None] + list(data.columns), label_visibility="collapsed")  
+        
     with col2:
         st.markdown("<h4 style='margin-bottom:0.2rem; color:#333;'>Choose X-axis</h4>", unsafe_allow_html=True)
         x = st.selectbox(" ", data.columns, label_visibility="collapsed")
@@ -345,12 +350,14 @@ elif st.session_state["page"] == "adv_visualization":
             st.markdown("<h4 style='margin-bottom:0.2rem; color:#333;'>Choose Y-axis</h4>", unsafe_allow_html=True)
             y_cols = [col for col in data.columns if col != x]
             y = st.selectbox(" ", y_cols, label_visibility="collapsed")
+            
     col3,col4 = st.columns(2)
     with col4:
         if st.button("Generate Plot"):
             if selected_plot == 'histplot':
                 y = None
             adv_plot(selected_plot,data,x,y,hue)
+            
     if len(st.session_state["plots"]) > 1:
         st.subheader("📜 Previous Plots")
         plots_list = list(st.session_state["adv_plot"].items())
@@ -378,6 +385,7 @@ elif st.session_state["page"] == "adv_visualization":
                     )
                     st.pyplot(fig)
     new_pages("visualizations","engg_feature")
+    
 elif st.session_state["page"] == "engg_feature":
     data = st.session_state["data"].copy()
     categorical = data.select_dtypes(include='object').columns.tolist()
@@ -386,6 +394,7 @@ elif st.session_state["page"] == "engg_feature":
     numerical_html = "<hr>".join(numerical)
     page_title("Feature Engineering", "🛠️")
     col1,col2 = st.columns(2)
+    
     with col1:
         st.markdown(
                 f""" <div style="
@@ -444,12 +453,15 @@ elif st.session_state["page"] == "training":
     label = LabelEncoder()
     for col in category:
         data[col] = label.fit_transform(data[col])
+        
     x = data.drop(columns=[target])
     y = data[target]
+    
     if y.dtype == "object" or len(y.unique()) < 20:
         task = "classification"
     else:
         task = "regression"
+        
     if task == "classification":
         RF = model_training(RandomForestClassifier(n_estimators=5), x, y, task="classification")
         LR = model_training(LogisticRegression(max_iter=1000), x, y, task="classification")
@@ -468,6 +480,7 @@ elif st.session_state["page"] == "training":
         else:
             best_model, best_model_name = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), "GradientBoosting"
     best_model.fit(x, y)
+    
     st.session_state["best_model"] = best_model
     st.session_state["best_model_name"] = best_model_name
     buffer = io.BytesIO()
@@ -487,6 +500,7 @@ elif st.session_state["page"] == "training":
                 "><h4>✅ {best_model_name} model saved successfully!</h4>
             </div>
         """,unsafe_allow_html=True )
+    
     col1,col2,col3 = st.columns(3)
     with col2:
         st.download_button(
@@ -505,8 +519,10 @@ elif st.session_state["page"] == "training":
     if col3.button("🎛️ Hyperparameter tunning"):
         next_page("adv_training")
         st.rerun()
+        
 if "models" not in st.session_state:
     st.session_state.models = []
+    
 elif st.session_state["page"] == "adv_training":
     page_title("Model Tunning","🤖")
     data = st.session_state["data"].copy()
@@ -518,10 +534,12 @@ elif st.session_state["page"] == "adv_training":
     x = data.drop(columns=[target])
     y = data[target]
     params = {}
+    
     if y.dtype == "object" or len(y.unique()) < 20:
         task = "classification"
     else:
         task = "regression"
+        
     if task == "classification":
         col1,col2 = st.columns(2)
         with col1:
@@ -599,6 +617,7 @@ elif st.session_state["page"] == "adv_training":
                         data=f,
                         file_name=entry["file"],
                         key=f"download_{i}")
+                    
     col3,col4 = st.columns(2)
     if col3.button("⬅️ Back"):
         next_page("training")
@@ -607,6 +626,7 @@ elif st.session_state["page"] == "adv_training":
         next_page("upload")
         st.session_state["data"] = None
         st.rerun()
+        
 elif st.session_state["page"] == "nlp_home":
     st.markdown(
         """
