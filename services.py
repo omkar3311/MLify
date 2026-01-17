@@ -66,19 +66,6 @@ def category_notebook():
             plt.tight_layout()
             plt.show()
             """ ))
-        
-    if len(numerical) > 1:
-        st.session_state["cells"].append(
-            new_code_cell(
-                f"""
-                corr = df[{list(numerical)}].corr()
-
-                plt.figure(figsize=(10, 6))
-                sns.heatmap(corr, annot=True, cmap="coolwarm")
-                plt.title("Correlation Heatmap")
-                plt.show()
-                """ ))
-
 
     numerical = st.session_state["data_cleaned"].select_dtypes(include=["int64", "float64"]).columns
 
@@ -97,6 +84,17 @@ def category_notebook():
             plt.tight_layout()
             plt.show()
             """ ))
+    if len(numerical) > 1:
+        st.session_state["cells"].append(
+            new_code_cell(
+                f"""
+                corr = df[{list(numerical)}].corr()
+
+                plt.figure(figsize=(10, 6))
+                sns.heatmap(corr, annot=True, cmap="coolwarm")
+                plt.title("Correlation Heatmap")
+                plt.show()
+                """ ))
 
 
 def adv_plot(selected_plot, data, x, y=None, hue=None):
@@ -114,7 +112,22 @@ def adv_plot(selected_plot, data, x, y=None, hue=None):
     st.pyplot(fig)
     plot_key = f"{selected_plot}_{x}_{y if y else 'None'}"
     st.session_state["adv_plot"][plot_key] = fig
-    
+
+def add_adv_plot_to_notebook(plot, x, y=None, hue=None):
+    hue_code = f', hue="{hue}"' if hue else ""
+    y_code = f', y="{y}"' if y else ""
+
+    plot_code = f"""
+        plt.figure(figsize=(8, 6))
+        sns.{plot}(data=df, x="{x}"{y_code}{hue_code}{', kde=True' if plot == 'histplot' else ''})
+        plt.title("{plot.title()} - {x}")
+        plt.tight_layout()
+        plt.show()
+        """
+    st.session_state["cells"].append( new_markdown_cell( f"### {plot.title()} ({x}{', ' + y if y else ''})"))
+    st.session_state["cells"].append( new_code_cell(plot_code.strip()))
+
+
 def unsupervised_graph():
     if "nlp_plots" not in st.session_state:
         st.session_state["nlp_plots"] = {}
