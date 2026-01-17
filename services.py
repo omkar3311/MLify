@@ -205,6 +205,21 @@ def model_training(model, x, y, task="classification"):
             score = r2
     return score
 
+def add_adv_model_to_notebook(test_size,model,model_choice,metric_name):
+    st.session_state["cells"].append(new_markdown_cell(f"##{model_choice}"))
+    metric_code = (
+        "accuracy_score(y_test, y_pred)"
+        if metric_name == "Accuracy"
+        else "mean_squared_error(y_test, y_pred)" )
+    st.session_state["cells"].append(new_code_cell(f""" 
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size={test_size}, random_state=42)
+            model = {model}
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+            score = {metric_code}
+            score   """  ))
+    
+
 def clouds(data,text_col,cluster_ids,labels):
     plots = {}
     for i in range(0, len(cluster_ids), 2):
@@ -222,3 +237,4 @@ def clouds(data,text_col,cluster_ids,labels):
                     st.pyplot(fig)
                     plots[i] = fig
     return plots
+
