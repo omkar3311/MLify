@@ -149,7 +149,24 @@ def model_training(model, x, y, task="classification"):
                 st.progress(progress_value)
             score = r2
     return score
-    
+
+def ui(model,score):
+    col1,col2,col3 = st.columns(3)
+    with col1:
+        st.markdown(f"""
+                    <div  style = "color: #333;">
+                    <h5>{model}</h5>
+                    <hr>
+                """,unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+                    <div  style = "color: #333;">
+                    <h5>{score}%</h5>
+                    <hr>
+                """,unsafe_allow_html=True)
+    with col3:
+        st.progress(score)
+
 if st.session_state["page"] == "home":
     st.markdown(
         """
@@ -602,7 +619,8 @@ X_train.shape, X_test.shape
     results_container = st.container()
     with results_container:
         if task == "classification":
-            # RF = model_training(RandomForestClassifier(n_estimators=5), x, y, task="classification")
+            RF = model_training(RandomForestClassifier(n_estimators=5), x, y, task="classification")
+            ui("RF",RF)
             if not st.session_state["RF"]:
                 st.session_state["cells"].append( new_markdown_cell("## Random Forest Classifier"))
                 st.session_state["cells"].append( new_code_cell(
@@ -657,6 +675,7 @@ accuracy_score(y_test, y_pred)
                 "Random Forest": RandomForestClassifier(n_estimators=5, random_state=42),
                 "Logistic Regression": LogisticRegression(max_iter=1000),
                 "SVC": SVC(C=1, kernel="rbf") }
+            
         else:
             # LR = model_training(LinearRegression(), x, y, task="regression")
             if not st.session_state["LR"]:
