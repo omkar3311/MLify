@@ -204,7 +204,8 @@ def model_training(model, x, y, task="classification"):
                     </div>
                 """, unsafe_allow_html=True)
             with col3:
-                st.progress(r2)
+                progress_value = max(0.0, min(1.0, r2))
+                st.progress(progress_value)
             score = r2
     return score
 
