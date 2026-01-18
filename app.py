@@ -396,7 +396,7 @@ elif st.session_state["page"] == "adv_visualization":
             
     col3,col4 = st.columns(2)
     with col4:
-        if st.button("Generate Plot"):
+        if st.button("📈 Generate Plot"):
             if selected_plot == 'histplot':
                 y = None
             adv_plot(selected_plot,data,x,y,hue)
@@ -406,7 +406,7 @@ elif st.session_state["page"] == "adv_visualization":
             "y": y,
             "hue": hue }
         if "last_adv_plot" in st.session_state and st.session_state["last_adv_plot"] is not None:
-            if st.button("Add Plot to Notebook"):
+            if st.button("➕ Add Plot to Notebook"):
                 plot_info = st.session_state["last_adv_plot"]
                 add_adv_plot_to_notebook(
                     plot_info["plot"],
@@ -670,7 +670,7 @@ r2_score(y_test, y_pred)
     col1,col2,col3 = st.columns(3)
     with col2:
         st.download_button(
-        label=f"Download {best_model_name} Model",
+        label=f"⬇️ Download {best_model_name} Model",
         data=buffer,
         file_name=f"{best_model_name}_model.pkl",
         mime="application/octet-stream")
@@ -688,7 +688,7 @@ r2_score(y_test, y_pred)
     nb_bytes = generate_notebook_download()
     if nb_bytes:
         col4.download_button(
-            label="Download Notebook",
+            label="⬇️ Download Notebook",
             data=nb_bytes,
             file_name="model_notebook.ipynb",
             mime="application/x-ipynb+json"
@@ -753,7 +753,7 @@ elif st.session_state["page"] == "adv_training":
                     n_estimators=params["n_estimators"],
                     learning_rate=params["learning_rate"],
                     random_state=42)
-    if st.button("Train Model"):
+    if st.button("🛠️ Train Model"):
         model.fit(x_train, y_train)
         y_pred = model.predict(x_test)
         if model_choice in ["Logistic Regression", "Random Forest", "SVM"]:
@@ -781,7 +781,7 @@ elif st.session_state["page"] == "adv_training":
             "params": params
         })
     if "last_trained_model" in st.session_state:
-        if st.button("Add model in notebook"):
+        if st.button("➕ Add model in notebook"):
             info = st.session_state["last_trained_model"]
             add_adv_model_to_notebook(
                 info["test_size"],
@@ -819,7 +819,7 @@ elif st.session_state["page"] == "adv_training":
     nb_bytes = generate_notebook_download()
     if nb_bytes:
         col5.download_button(
-            label="Download Notebook",
+            label="⬇️ Download Notebook",
             data=nb_bytes,
             file_name="model_notebook.ipynb",
             mime="application/x-ipynb+json"
