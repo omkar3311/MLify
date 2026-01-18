@@ -651,7 +651,8 @@ accuracy_score(y_test, y_pred)
         """.strip() ))
                 st.session_state["LR"] = True
 
-        # SV = model_training(SVC(C = 1,kernel='rbf'), x, y, task="classification")
+            SV = model_training(SVC(C = 1,kernel='rbf'), x, y, task="classification")
+            ui("SVC",SV)
             if not st.session_state["svc"] :
                 st.session_state["cells"].append( new_markdown_cell("## Support Vector Classifier"))
                 st.session_state["cells"].append(
