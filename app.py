@@ -18,7 +18,7 @@ import io
 import re
 from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
 import numpy as np
-from services import generate_plots, adv_plot, unsupervised_graph, model_training, clouds,category_notebook, add_adv_plot_to_notebook , add_adv_model_to_notebook, generate_notebook_download
+from services import generate_plots, adv_plot, unsupervised_graph, clouds,category_notebook, add_adv_plot_to_notebook , add_adv_model_to_notebook, generate_notebook_download
 import nbformat 
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 
