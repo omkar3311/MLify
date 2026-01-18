@@ -35,6 +35,8 @@ MLify now **generates and exports a complete Jupyter Notebook** containing:
    - Cleaning & preprocessing 
    - EDA code 
    - Feature engineering   
+   - Model training  
+   - Evaluation metrics 
 
 ## 🤖 **Models Supported**
 
