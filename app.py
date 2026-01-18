@@ -167,6 +167,26 @@ def ui(model,score):
     with col3:
         st.progress(score)
 
+def ui_r(model,r2):
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown(f"""
+                <div style="color: #333; text-align:center;">
+                    <h5>{model}</h5>
+                    <hr>
+                </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"""
+                <div style="color: #333; text-align:center;">
+                    <h5>R²: {r2:.2f}</h5>
+                    <hr>
+                </div>
+            """, unsafe_allow_html=True)
+        with col3:
+                progress_value = max(0.0, min(1.0, r2))
+                st.progress(progress_value)
+
 if st.session_state["page"] == "home":
     st.markdown(
         """
@@ -616,9 +636,7 @@ X_train.shape, X_test.shape
         task = "classification"
     else:
         task = "regression"
-    results_container = st.container()
-    with results_container:
-        if task == "classification":
+    if task == "classification":
             RF = model_training(RandomForestClassifier(n_estimators=5), x, y, task="classification")
             ui("RandomForestClassifier",RF)
             if not st.session_state["RF"]:
@@ -667,19 +685,16 @@ accuracy_score(y_test, y_pred)
         """.strip() ))
                 st.session_state["svc"] = True
 
-        # if RF > LR and RF > SV:
-        #     best_model, best_model_name = RandomForestClassifier(n_estimators=5), "RandomForestClassifier"
-        # elif LR > SV:
-        #     best_model, best_model_name = LogisticRegression(max_iter=1000), "LogisticRegression"
-        # else:
-        #     best_model, best_model_name = SVC(C = 1,kernel='rbf'), "SVC"
-            models = {
-                "Random Forest": RandomForestClassifier(n_estimators=5, random_state=42),
-                "Logistic Regression": LogisticRegression(max_iter=1000),
-                "SVC": SVC(C=1, kernel="rbf") }
+            if RF > LR and RF > SV:
+                best_model, best_model_name = RandomForestClassifier(n_estimators=5), "RandomForestClassifier"
+            elif LR > SV:
+                best_model, best_model_name = LogisticRegression(max_iter=1000), "LogisticRegression"
+            else:
+                best_model, best_model_name = SVC(C = 1,kernel='rbf'), "SVC"
             
-        else:
-            # LR = model_training(LinearRegression(), x, y, task="regression")
+    else:
+            LR = model_training(LinearRegression(), x, y, task="regression")
+            ui_r("LinearRegression",LR)
             if not st.session_state["LR"]:
                 st.session_state["cells"].append( new_markdown_cell("## Linear Regression"))
                 st.session_state["cells"].append(
@@ -695,7 +710,8 @@ r2_score(y_test, y_pred)
         """.strip() ))
                 st.session_state["LR"] = True
 
-            # GB = model_training(GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), x, y, task="regression")
+            GB = model_training(GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), x, y, task="regression")
+            ui_r("GradientBoostingRegressor",GB)
             if not st.session_state["GB"]:
                 st.session_state["cells"].append( new_markdown_cell("## Gradient Boosting Regressor") )
                 st.session_state["cells"].append( new_code_cell(
@@ -713,36 +729,16 @@ y_pred = gb.predict(X_test)
 r2_score(y_test, y_pred)
         """.strip()))
                 st.session_state["GB"] = True
-            models = {
-            "Linear Regression": LinearRegression(),
-            "Gradient Boosting": GradientBoostingRegressor(
-                n_estimators=200,
-                learning_rate=0.05,
-                max_depth=3,
-                random_state=42 )}
-        scores = {}
 
-        for name, model in models.items():
-            with st.spinner(f"Training {name}..."):
-                score = train_model(model, x, y, task)
-                scores[name] = score
-                render_model_row(name, score, task)
-
-        # if LR > GB :
-        #     best_model, best_model_name = LinearRegression(), "LinearRegression"
-        # else:
-        #     best_model, best_model_name = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), "GradientBoosting"
-    best_model_name = max(scores, key=scores.get)
-    best_model = models[best_model_name]
+            if LR > GB :
+                best_model, best_model_name = LinearRegression(), "LinearRegression"
+            else:
+                best_model, best_model_name = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), "GradientBoosting"
 
     best_model.fit(x, y)
+    
     st.session_state["best_model"] = best_model
     st.session_state["best_model_name"] = best_model_name
-
-    # best_model.fit(x, y)
-    
-    # st.session_state["best_model"] = best_model
-    # st.session_state["best_model_name"] = best_model_name
     buffer = io.BytesIO()
     pickle.dump(best_model, buffer)
     buffer.seek(0)
