@@ -103,6 +103,53 @@ def clean_text(text):
         text = re.sub(r'\s+', ' ', text).strip()
         return text
     
+def model_training(model, x, y, task="classification"):
+    with st.spinner(f"Training {model.__class__.__name__}..."):
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42)
+        model.fit(x_train, y_train)
+        y_pred = model.predict(x_test)
+        if task == "classification":
+            col1,col2,col3 = st.columns(3)
+            with col1:
+                score = int(accuracy_score(y_test, y_pred) * 100)
+                st.markdown(f"""
+                            <div  style = "color: #333;">
+                            <h5>{model.__class__.__name__}</h5>
+                            <hr>
+                        """,unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"""
+                            <div  style = "color: #333;">
+                            <h5>{score}%</h5>
+                            <hr>
+                        """,unsafe_allow_html=True)
+            with col3:
+                st.progress(score)
+            
+        else:
+            # rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+            r2 = r2_score(y_test, y_pred)
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.markdown(f"""
+                    <div style="color: #333; text-align:center;">
+                        <h5>{model.__class__.__name__}</h5>
+                        <hr>
+                    </div>
+                """, unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"""
+                    <div style="color: #333; text-align:center;">
+                        <h5>R²: {r2:.2f}</h5>
+                        <hr>
+                    </div>
+                """, unsafe_allow_html=True)
+            with col3:
+                progress_value = max(0.0, min(1.0, r2))
+                st.progress(progress_value)
+            score = r2
+    return score
+    
 if st.session_state["page"] == "home":
     st.markdown(
         """
