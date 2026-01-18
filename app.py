@@ -156,7 +156,7 @@ if st.session_state["page"] == "upload":
     st.markdown(
         """
         <div style='display: flex; flex-direction: column; justify-content: center; align-items: center; height: 40vh;'>
-            <h1 style='font-size: 80px; font-weight: bold; margin: 0;'>Classification</h1>
+            <h1 style='font-size: 80px; font-weight: bold; margin: 0;'>Regression/Classification</h1>
             <p style='font-size: 24px; color: black; margin-top: 0px;'>
                 Your Gateway to Smarter Data Insights
             </p>
@@ -507,6 +507,7 @@ elif st.session_state["page"] == "training":
     data = st.session_state["data"].copy()
     target = st.session_state["target"]
     category = data.select_dtypes(include='object').columns
+    cat = category.tolist()
     label = LabelEncoder()
     for col in category:
         data[col] = label.fit_transform(data[col])
@@ -518,7 +519,7 @@ from sklearn.preprocessing import LabelEncoder
 df_encoded = df.copy()
 
 label = LabelEncoder()
-categorical_cols = {category}
+categorical_cols = {cat}
 
 for col in categorical_cols:
     df_encoded[col] = label.fit_transform(df_encoded[col])
@@ -612,6 +613,7 @@ accuracy_score(y_test, y_pred)
             new_code_cell(
                 """
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
 lr = LinearRegression()
 lr.fit(X_train, y_train)
 
@@ -746,7 +748,7 @@ elif st.session_state["page"] == "adv_training":
                 model = LinearRegression()
             elif model_choice == "Gradient Boosting":
                 params["n_estimators"] = st.slider("Number of Estimators", 50, 500, 100)
-                params["learning_rate"] = st.number_input("Learning Rate", 0.01, 1.0, 0.1)
+                params["learning_rate"] = round(st.number_input( "Learning Rate", min_value=0.01, max_value=1.0, value=0.1, step=0.01, format="%.2f" ), 2 )
                 model = GradientBoostingRegressor(
                     n_estimators=params["n_estimators"],
                     learning_rate=params["learning_rate"],
