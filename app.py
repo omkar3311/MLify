@@ -679,6 +679,10 @@ r2_score(y_test, y_pred)
         next_page("engg_feature")
         st.rerun()
     if col2.button("🔄 start Over"):
+        st.session_state["cells"] = []
+        for k in ["import-data","shape","null","vis","encod","train","x&y","RF","LR","svc","GB"]:
+            if k in st.session_state:
+                st.session_state[k] = False  
         next_page("upload")
         st.session_state["data"] = None
         st.rerun()
@@ -812,6 +816,10 @@ elif st.session_state["page"] == "adv_training":
         next_page("training")
         st.rerun()
     if col4.button("🔄 start Over"):
+        st.session_state["cells"] = []
+        for k in ["import-data","shape","null","vis","encod","train","x&y","RF","LR","svc","GB"]:
+            if k in st.session_state:
+                st.session_state[k] = False 
         next_page("upload")
         st.session_state["data"] = None
         st.rerun()
