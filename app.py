@@ -620,7 +620,7 @@ X_train.shape, X_test.shape
     with results_container:
         if task == "classification":
             RF = model_training(RandomForestClassifier(n_estimators=5), x, y, task="classification")
-            ui("RF",RF)
+            ui("RandomForestClassifier",RF)
             if not st.session_state["RF"]:
                 st.session_state["cells"].append( new_markdown_cell("## Random Forest Classifier"))
                 st.session_state["cells"].append( new_code_cell(
@@ -635,7 +635,8 @@ accuracy_score(y_test, y_pred)
         """.strip() ))
                 st.session_state["RF"] = True
 
-        # LR = model_training(LogisticRegression(max_iter=1000), x, y, task="classification")
+            LR = model_training(LogisticRegression(max_iter=1000), x, y, task="classification")
+            ui("LogisticRegression",LR)
             if not st.session_state["LR"]:
                 st.session_state["cells"].append( new_markdown_cell("## Logistic Regression") )
                 st.session_state["cells"].append(
