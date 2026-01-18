@@ -188,7 +188,7 @@ def ui(model,score):
     with col2:
         st.markdown(f"""
                     <div  style = "color: #333;">
-                    <h5>{score:.3f}%</h5>
+                    <h5>{score:.2f}%</h5>
                     <hr>
                 """,unsafe_allow_html=True)
     with col3:
