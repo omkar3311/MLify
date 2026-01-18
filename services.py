@@ -178,20 +178,21 @@ def train_model(model, X, y, task):
     return score
 
 def render_model_row(model_name, score, task):
-    col1, col2, col3 = st.columns(3)
+    with st.container():
+        col1, col2, col3 = st.columns(3)
 
-    with col1:
-        st.markdown(f"### {model_name}")
+        with col1:
+            st.markdown(f"### {model_name}")
 
-    with col2:
-        if task == "classification":
-            st.markdown(f"### {score * 100:.2f}%")
-        else:
-            st.markdown(f"### R² = {score:.3f}")
+        with col2:
+            if task == "classification":
+                st.markdown(f"### {score * 100:.2f}%")
+            else:
+                st.markdown(f"### R² = {score:.3f}")
 
-    with col3:
-        progress_value = max(0.0, min(1.0, score))
-        st.progress(progress_value)
+        with col3:
+            progress_value = max(0.0, min(1.0, score))
+            st.progress(progress_value)
 
 def add_adv_model_to_notebook(test_size,model,model_choice,metric_name):
     st.session_state["cells"].append(new_markdown_cell(f"## {model_choice}"))
