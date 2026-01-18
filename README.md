@@ -27,6 +27,8 @@
 
 ---
 
+## 🆕 Notebook-First Workflow (New)
+
 ## 🤖 **Models Supported**
 
 ### 🧩 Classification
