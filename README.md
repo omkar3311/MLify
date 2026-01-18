@@ -45,6 +45,10 @@ MLify now **generates and exports a complete Jupyter Notebook** containing:
    - Modify it  
    - Use it for learning, interviews, or production pipelines  
 
+This makes MLify **fully transparent, reproducible, and educational**.
+
+---
+
 ## 🤖 **Models Supported**
 
 ### 🧩 Classification
