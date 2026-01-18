@@ -29,6 +29,8 @@
 
 ## 🆕 Notebook-First Workflow (New)
 
+MLify now **generates and exports a complete Jupyter Notebook** containing:
+
 ## 🤖 **Models Supported**
 
 ### 🧩 Classification
