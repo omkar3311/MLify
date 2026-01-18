@@ -39,6 +39,9 @@ MLify now **generates and exports a complete Jupyter Notebook** containing:
    - Evaluation metrics 
    - Visualizations 
 
+📥 **Users can download the `.ipynb` notebook** and:
+
+
 ## 🤖 **Models Supported**
 
 ### 🧩 Classification
