@@ -162,7 +162,7 @@ def unsupervised_graph():
     st.session_state["sil_scores"] = sil
     st.success(f"✅ Best k (Silhouette Score): **{best_k}** (Score = {max(sil):.4f})")
     
-def train_model(model, X, y, task):
+def model_training(model, X, y, task):
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.25, random_state=42
     )
@@ -194,23 +194,26 @@ def ui(model,score):
     with col3:
         st.progress(score)
 
-def render_model_row(model_name, score, task):
-    with st.container():
+def ui_r(model,r2):
         col1, col2, col3 = st.columns(3)
-
         with col1:
-            st.markdown(f"### {model_name}")
-
+            st.markdown(f"""
+                <div style="color: #333; text-align:center;">
+                    <h5>{model}</h5>
+                    <hr>
+                </div>
+            """, unsafe_allow_html=True)
         with col2:
-            if task == "classification":
-                st.markdown(f"### {score * 100:.2f}%")
-            else:
-                st.markdown(f"### R² = {score:.3f}")
-
+            st.markdown(f"""
+                <div style="color: #333; text-align:center;">
+                    <h5>R²: {r2:.2f}</h5>
+                    <hr>
+                </div>
+            """, unsafe_allow_html=True)
         with col3:
-            progress_value = max(0.0, min(1.0, score))
-            st.progress(progress_value)
-
+                progress_value = max(0.0, min(1.0, r2))
+                st.progress(progress_value)
+                
 def add_adv_model_to_notebook(test_size,model,model_choice,metric_name):
     st.session_state["cells"].append(new_markdown_cell(f"## {model_choice}"))
     metric_code = (
