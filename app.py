@@ -18,7 +18,7 @@ import io
 import re
 from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
 import numpy as np
-from services import generate_plots, adv_plot, unsupervised_graph, clouds,category_notebook, add_adv_plot_to_notebook , add_adv_model_to_notebook, generate_notebook_download
+from services import generate_plots, adv_plot, unsupervised_graph, clouds,category_notebook, add_adv_plot_to_notebook , add_adv_model_to_notebook, generate_notebook_download,train_model,render_model_row
 import nbformat 
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 
@@ -599,12 +599,13 @@ X_train.shape, X_test.shape
         task = "classification"
     else:
         task = "regression"
-        
-    if task == "classification":
-        RF = model_training(RandomForestClassifier(n_estimators=5), x, y, task="classification")
-        if not st.session_state["RF"]:
-            st.session_state["cells"].append( new_markdown_cell("## Random Forest Classifier"))
-            st.session_state["cells"].append( new_code_cell(
+    results_container = st.container()
+    with results_container:
+        if task == "classification":
+            # RF = model_training(RandomForestClassifier(n_estimators=5), x, y, task="classification")
+            if not st.session_state["RF"]:
+                st.session_state["cells"].append( new_markdown_cell("## Random Forest Classifier"))
+                st.session_state["cells"].append( new_code_cell(
                 """
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
@@ -614,13 +615,13 @@ rf.fit(X_train, y_train)
 y_pred = rf.predict(X_test)
 accuracy_score(y_test, y_pred)
         """.strip() ))
-            st.session_state["RF"] = True
+                st.session_state["RF"] = True
 
-        LR = model_training(LogisticRegression(max_iter=1000), x, y, task="classification")
-        if not st.session_state["LR"]:
-            st.session_state["cells"].append( new_markdown_cell("## Logistic Regression") )
-            st.session_state["cells"].append(
-            new_code_cell(
+        # LR = model_training(LogisticRegression(max_iter=1000), x, y, task="classification")
+            if not st.session_state["LR"]:
+                st.session_state["cells"].append( new_markdown_cell("## Logistic Regression") )
+                st.session_state["cells"].append(
+                new_code_cell(
                 """
 from sklearn.linear_model import LogisticRegression
 lr = LogisticRegression(max_iter=1000)
@@ -629,13 +630,13 @@ lr.fit(X_train, y_train)
 y_pred = lr.predict(X_test)
 accuracy_score(y_test, y_pred)
         """.strip() ))
-            st.session_state["LR"] = True
+                st.session_state["LR"] = True
 
-        SV = model_training(SVC(C = 1,kernel='rbf'), x, y, task="classification")
-        if not st.session_state["svc"] :
-            st.session_state["cells"].append( new_markdown_cell("## Support Vector Classifier"))
-            st.session_state["cells"].append(
-            new_code_cell(
+        # SV = model_training(SVC(C = 1,kernel='rbf'), x, y, task="classification")
+            if not st.session_state["svc"] :
+                st.session_state["cells"].append( new_markdown_cell("## Support Vector Classifier"))
+                st.session_state["cells"].append(
+                new_code_cell(
                 """
 from sklearn.svm import SVC
 svc = SVC(C=1, kernel="rbf")
@@ -644,20 +645,24 @@ svc.fit(X_train, y_train)
 y_pred = svc.predict(X_test)
 accuracy_score(y_test, y_pred)
         """.strip() ))
-            st.session_state["svc"] = True
+                st.session_state["svc"] = True
 
-        if RF > LR and RF > SV:
-            best_model, best_model_name = RandomForestClassifier(n_estimators=5), "RandomForestClassifier"
-        elif LR > SV:
-            best_model, best_model_name = LogisticRegression(max_iter=1000), "LogisticRegression"
+        # if RF > LR and RF > SV:
+        #     best_model, best_model_name = RandomForestClassifier(n_estimators=5), "RandomForestClassifier"
+        # elif LR > SV:
+        #     best_model, best_model_name = LogisticRegression(max_iter=1000), "LogisticRegression"
+        # else:
+        #     best_model, best_model_name = SVC(C = 1,kernel='rbf'), "SVC"
+            models = {
+                "Random Forest": RandomForestClassifier(n_estimators=5, random_state=42),
+                "Logistic Regression": LogisticRegression(max_iter=1000),
+                "SVC": SVC(C=1, kernel="rbf") }
         else:
-            best_model, best_model_name = SVC(C = 1,kernel='rbf'), "SVC"
-    else:
-        LR = model_training(LinearRegression(), x, y, task="regression")
-        if not st.session_state["LR"]:
-            st.session_state["cells"].append( new_markdown_cell("## Linear Regression"))
-            st.session_state["cells"].append(
-            new_code_cell(
+            # LR = model_training(LinearRegression(), x, y, task="regression")
+            if not st.session_state["LR"]:
+                st.session_state["cells"].append( new_markdown_cell("## Linear Regression"))
+                st.session_state["cells"].append(
+                new_code_cell(
                 """
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
@@ -667,12 +672,12 @@ lr.fit(X_train, y_train)
 y_pred = lr.predict(X_test)
 r2_score(y_test, y_pred)
         """.strip() ))
-            st.session_state["LR"] = True
+                st.session_state["LR"] = True
 
-        GB = model_training(GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), x, y, task="regression")
-        if not st.session_state["GB"]:
-            st.session_state["cells"].append( new_markdown_cell("## Gradient Boosting Regressor") )
-            st.session_state["cells"].append( new_code_cell(
+            # GB = model_training(GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), x, y, task="regression")
+            if not st.session_state["GB"]:
+                st.session_state["cells"].append( new_markdown_cell("## Gradient Boosting Regressor") )
+                st.session_state["cells"].append( new_code_cell(
                 """
 from sklearn.ensemble import GradientBoostingRegressor
 gb = GradientBoostingRegressor(
@@ -686,16 +691,37 @@ gb.fit(X_train, y_train)
 y_pred = gb.predict(X_test)
 r2_score(y_test, y_pred)
         """.strip()))
-            st.session_state["GB"] = True
+                st.session_state["GB"] = True
+            models = {
+            "Linear Regression": LinearRegression(),
+            "Gradient Boosting": GradientBoostingRegressor(
+                n_estimators=200,
+                learning_rate=0.05,
+                max_depth=3,
+                random_state=42 )}
+        scores = {}
 
-        if LR > GB :
-            best_model, best_model_name = LinearRegression(), "LinearRegression"
-        else:
-            best_model, best_model_name = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), "GradientBoosting"
+        for name, model in models.items():
+            with st.spinner(f"Training {name}..."):
+                score = train_model(model, x, y, task)
+                scores[name] = score
+                render_model_row(name, score, task)
+
+        # if LR > GB :
+        #     best_model, best_model_name = LinearRegression(), "LinearRegression"
+        # else:
+        #     best_model, best_model_name = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42), "GradientBoosting"
+    best_model_name = max(scores, key=scores.get)
+    best_model = models[best_model_name]
+
     best_model.fit(x, y)
-    
     st.session_state["best_model"] = best_model
     st.session_state["best_model_name"] = best_model_name
+
+    # best_model.fit(x, y)
+    
+    # st.session_state["best_model"] = best_model
+    # st.session_state["best_model_name"] = best_model_name
     buffer = io.BytesIO()
     pickle.dump(best_model, buffer)
     buffer.seek(0)
