@@ -32,6 +32,7 @@
 MLify now **generates and exports a complete Jupyter Notebook** containing:
 
    - Data loading  
+   - Cleaning & preprocessing  
 
 ## 🤖 **Models Supported**
 
