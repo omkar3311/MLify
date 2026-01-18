@@ -41,6 +41,9 @@ MLify now **generates and exports a complete Jupyter Notebook** containing:
 
 📥 **Users can download the `.ipynb` notebook** and:
 
+   - Run it locally  
+   - Modify it  
+   - Use it for learning, interviews, or production pipelines  
 
 ## 🤖 **Models Supported**
 
