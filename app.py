@@ -18,7 +18,7 @@ import io
 import re
 from sklearn.metrics import silhouette_score,accuracy_score, mean_squared_error, r2_score
 import numpy as np
-from services import generate_plots, adv_plot, unsupervised_graph, clouds,category_notebook, add_adv_plot_to_notebook , add_adv_model_to_notebook, generate_notebook_download,train_model,render_model_row
+from services import generate_plots, adv_plot, unsupervised_graph, clouds,category_notebook, add_adv_plot_to_notebook , add_adv_model_to_notebook, generate_notebook_download,train_model,render_model_row,ui
 import nbformat 
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 
@@ -150,22 +150,7 @@ def model_training(model, x, y, task="classification"):
             score = r2
     return score
 
-def ui(model,score):
-    col1,col2,col3 = st.columns(3)
-    with col1:
-        st.markdown(f"""
-                    <div  style = "color: #333;">
-                    <h5>{model}</h5>
-                    <hr>
-                """,unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-                    <div  style = "color: #333;">
-                    <h5>{score}%</h5>
-                    <hr>
-                """,unsafe_allow_html=True)
-    with col3:
-        st.progress(score)
+
 
 def ui_r(model,r2):
         col1, col2, col3 = st.columns(3)

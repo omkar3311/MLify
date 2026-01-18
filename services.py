@@ -177,6 +177,23 @@ def train_model(model, X, y, task):
 
     return score
 
+def ui(model,score):
+    col1,col2,col3 = st.columns(3)
+    with col1:
+        st.markdown(f"""
+                    <div  style = "color: #333;">
+                    <h5>{model}</h5>
+                    <hr>
+                """,unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+                    <div  style = "color: #333;">
+                    <h5>{score}%</h5>
+                    <hr>
+                """,unsafe_allow_html=True)
+    with col3:
+        st.progress(score)
+
 def render_model_row(model_name, score, task):
     with st.container():
         col1, col2, col3 = st.columns(3)
